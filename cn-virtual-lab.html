@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>CN Virtual Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: lab bench. Fixed practical index on the left, one experiment "bench" at a time on the right; instrument-panel controls above each simulation. */
+:root{
+  --bg:#F2F4F6; --panel:#FFFFFF; --ink:#15212C; --muted:#5B6873; --line:#D6DDE3; --grid:#E6EBEF;
+  --accent:#1B5BC9; --soft:#E7EEF9; --sig:#B86200; --ok:#1C8448; --bad:#C2352C; --warn:#A86E12;
+  --v10:#1B5BC9; --v20:#B86200;
+  --f-disp:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1419; --panel:#151D24; --ink:#E2E8EE; --muted:#93A1AC; --line:#2A3540; --grid:#1E2830;
+  --accent:#74A3FF; --soft:#1A2739; --sig:#FFB04A; --ok:#4FC283; --bad:#F06A60; --warn:#E3AE4F;
+  --v10:#74A3FF; --v20:#FFB04A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1419; --panel:#151D24; --ink:#E2E8EE; --muted:#93A1AC; --line:#2A3540; --grid:#1E2830;
+  --accent:#74A3FF; --soft:#1A2739; --sig:#FFB04A; --ok:#4FC283; --bad:#F06A60; --warn:#E3AE4F;
+  --v10:#74A3FF; --v20:#FFB04A; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body)}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{border-bottom:1px solid var(--line);background:var(--panel)}
+header.top .wrap{padding-block:18px;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
+header h1{font:800 clamp(24px,3.4vw,34px)/1.05 var(--f-disp);font-stretch:80%;letter-spacing:-.01em;margin:0}
+header .meta{font:500 12px var(--f-mono);color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.shell{display:grid;grid-template-columns:250px minmax(0,1fr);gap:28px;padding-block:24px 60px}
+nav.side{position:sticky;top:16px;align-self:start;display:flex;flex-direction:column;gap:2px}
+nav.side .lbl{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px 10px}
+nav.side a{display:grid;grid-template-columns:30px 1fr;gap:4px;padding:8px 10px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:14px;line-height:1.3}
+nav.side a b{font:600 13px var(--f-mono);color:var(--muted)}
+nav.side a:hover{background:var(--soft)}
+nav.side a.on{background:var(--accent);color:#fff}
+nav.side a.on b{color:#fff;opacity:.8}
+nav.side a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:860px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:16px}
+  nav.side{position:static;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  nav.side .lbl{grid-column:1/-1;margin:0}
+  nav.side a{grid-template-columns:1fr;border:1px solid var(--line);background:var(--panel);font-size:12.5px;padding:7px 8px}
+  nav.side a span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+}
+main{min-width:0}
+.exp{display:flex;flex-direction:column;gap:18px;min-width:0}
+.eyebrow{font:600 12px var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--accent)}
+.exp h2{font:750 clamp(26px,3vw,36px)/1.08 var(--f-disp);font-stretch:85%;margin:4px 0 8px;text-wrap:balance}
+.aim{margin:0;max-width:72ch;color:var(--ink)}
+.aim b{font-weight:600}
+details{background:var(--panel);border:1px solid var(--line);border-radius:8px}
+details>summary{cursor:pointer;padding:10px 14px;font-weight:600;list-style:none;display:flex;justify-content:space-between}
+details>summary::after{content:"+";font-family:var(--f-mono);color:var(--muted)}
+details[open]>summary::after{content:"−"}
+details>div,details>ol{padding:0 18px 14px;margin:0;max-width:78ch}
+details li{margin:4px 0}
+.bench{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.ctrls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f>span,.lab{font:600 11px var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+input[type=text],input[type=number],select{font:14px var(--f-mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0}
+input[type=range]{accent-color:var(--accent);width:150px}
+input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;white-space:nowrap}
+.chks{display:flex;flex-wrap:wrap;gap:6px 16px}
+button{font:600 14px var(--f-body);border-radius:6px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+button:hover{filter:brightness(1.06)}
+.chip{font:13px var(--f-mono);padding:4px 9px;border-radius:999px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg label{padding:7px 12px;cursor:pointer;font-size:14px;border-right:1px solid var(--line)}
+.seg label:last-child{border-right:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--accent);color:#fff}
+.seg label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:-2px}
+canvas{display:block;max-width:100%}
+.scroll{overflow-x:auto;min-width:0}
+.note{font-size:13px;color:var(--muted);margin:0}
+.mono,pre{font:13px/1.5 var(--f-mono)}
+pre{margin:0;white-space:pre;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.two{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px}
+@media (max-width:980px){.two{grid-template-columns:minmax(0,1fr)}}
+table.t{border-collapse:collapse;font:13px var(--f-mono);width:100%;font-variant-numeric:tabular-nums}
+table.t th{text-align:left;font:600 11px var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--line);padding:6px 8px;white-space:nowrap}
+table.t td{padding:5px 8px;border-bottom:1px solid var(--grid);white-space:nowrap}
+table.pk tbody tr{cursor:pointer}
+table.pk tbody tr:hover,table.pk tbody tr.sel{background:var(--soft)}
+.ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .acc{color:var(--accent)}
+.err{color:var(--bad);font-size:13px;margin:0}
+.stat{display:flex;flex-wrap:wrap;gap:6px 22px;font:13px var(--f-mono)}
+.stat b{font-weight:500;color:var(--ink)} .stat span{color:var(--muted)}
+/* terminal */
+.term{background:#0C1116;color:#D7E0E8;border-radius:8px;border:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+.term pre{background:none;border:0;color:inherit;height:300px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.term .in{display:flex;gap:6px;align-items:center;border-top:1px solid #26313B;padding:8px 12px;font:13px var(--f-mono)}
+.term .in span{color:#7FB2FF;white-space:nowrap}
+.term input{flex:1;background:none;border:0;color:#fff;font:13px var(--f-mono);outline:none;min-width:0}
+.term .o-ok{color:#6FD39A}.term .o-bad{color:#FF8A80}.term .o-cmd{color:#FFFFFF}.term .o-dim{color:#8A98A5}
+.qk{display:flex;flex-wrap:wrap;gap:6px}
+.qk button{font:12px var(--f-mono);padding:4px 9px}
+/* bit cells */
+.cells{display:flex;flex-wrap:wrap;gap:3px}
+.cell{width:34px;text-align:center;font:500 15px var(--f-mono);border:1px solid var(--line);border-radius:4px;padding:5px 0 3px;background:var(--bg);display:flex;flex-direction:column;align-items:center}
+.cell small{font-size:10px;color:var(--muted);line-height:1}
+.cell.p{background:var(--soft);border-color:var(--accent)}
+.cell.r{background:color-mix(in srgb,var(--sig) 18%,var(--panel));border-color:var(--sig)}
+.cell.flip{background:var(--bad);border-color:var(--bad);color:#fff}
+.cell.flip small{color:#fff}
+.cell.fix{background:var(--ok);border-color:var(--ok);color:#fff}
+.cell.fix small{color:#fff}
+button.cell{cursor:pointer;font-weight:500}
+.row{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;align-items:center}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+.verdict{padding:10px 14px;border-radius:6px;font-weight:600;border:1px solid}
+.verdict.ok{background:color-mix(in srgb,var(--ok) 12%,var(--panel));border-color:var(--ok)}
+.verdict.bad{background:color-mix(in srgb,var(--bad) 12%,var(--panel));border-color:var(--bad)}
+.verdict.warn{background:color-mix(in srgb,var(--warn) 14%,var(--panel));border-color:var(--warn)}
+.log{list-style:none;margin:0;padding:8px 12px;height:190px;overflow:auto;font:12.5px/1.6 var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:6px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;border:1px solid var(--line)}
+svg text{font-family:var(--f-mono)}
+.dg{display:grid;grid-template-columns:repeat(auto-fill,8px);gap:2px}
+.dg span{width:8px;height:8px;border-radius:1px;background:var(--ok)}
+.dg span.l{background:var(--bad)} .dg span.rt{background:var(--warn)}
+/* packet builder */
+.tree{font:13px/1.65 var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;overflow-x:auto}
+.tree .ly{font-weight:600;margin-top:4px}
+.tree .fd{padding-left:18px;cursor:default;white-space:nowrap;border-radius:3px}
+.tree .fd.hl,.hex span.hl{background:var(--accent);color:#fff}
+.hex{font:13px/1.7 var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;overflow-x:auto;white-space:nowrap}
+.hex .off{color:var(--muted);margin-right:12px}
+.hex span.b{padding:0 2px;border-radius:2px;cursor:default}
+.hex .asc{color:var(--muted);margin-left:12px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px 14px}
+.grid4 input,.grid4 select{width:100%}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+
+<header class="top"><div class="wrap">
+  <h1>Computer Networks Virtual Lab</h1>
+  <span class="meta">CS3213 · TY B.Tech Computer Engineering · VIT Pune · AY 2026–27</span>
+</div></header>
+
+<div class="shell wrap">
+<nav class="side" aria-label="Practicals">
+  <p class="lbl">List of practicals</p>
+  <a href="#exp1"><b>P1</b><span>Line encoding</span></a>
+  <a href="#exp2"><b>P2</b><span>Small LAN, commands &amp; VLANs</span></a>
+  <a href="#exp3"><b>P3</b><span>Hamming code &amp; CRC</span></a>
+  <a href="#exp4"><b>P4</b><span>Sliding window: GBN &amp; SR</span></a>
+  <a href="#exp5"><b>P5</b><span>Single-area OSPFv2</span></a>
+  <a href="#exp6"><b>P6</b><span>TCP socket applications</span></a>
+  <a href="#exp7"><b>P7</b><span>UDP file transfer</span></a>
+  <a href="#exp8"><b>P8</b><span>Packet formats &amp; builder</span></a>
+  <a href="#exp9"><b>P9</b><span>HTTP versions &amp; status codes</span></a>
+</nav>
+
+<main>
+<!-- ============ P1 ============ -->
+<section id="exp1" class="exp" hidden>
+  <div><span class="eyebrow">Practical 1 · Unit I · CO1</span>
+  <h2>Digital line encoding</h2>
+  <p class="aim"><b>Aim:</b> Implement Unipolar NRZ, Polar NRZ, NRZ-Inverted, Bipolar, Manchester and Differential Manchester encoding and compare the resulting signals.</p></div>
+  <details><summary>Theory</summary><div>
+    <p>Line coding maps a bit stream to voltage levels on the wire. NRZ schemes hold one level for the whole bit, so long runs of identical bits give no transitions and the receiver's clock drifts. Biphase schemes (Manchester, Differential Manchester) force a transition in the middle of every bit, which makes them self-clocking at the cost of twice the signal rate. Bipolar AMI sends 0 as zero volts and alternates the polarity of 1s, which removes the DC component.</p>
+    <p>Conventions used here: Polar NRZ-L sends 1 as +V and 0 as −V. NRZ-I starts at −V and inverts on every 1. Manchester follows IEEE 802.3 (0 = high→low, 1 = low→high). Differential Manchester has a transition at the start of a bit for 0 and none for 1, starting from +V.</p>
+  </div></details>
+  <div class="bench">
+    <div class="ctrls">
+      <label class="f" style="flex:1 1 220px"><span>Bit stream (0/1, up to 24)</span><input type="text" id="le-bits" value="01001110" maxlength="40" autocomplete="off"></label>
+      <button id="le-rand">Random bits</button>
+    </div>
+    <div class="chks" id="le-schemes"></div>
+    <p class="err" id="le-err" hidden>Enter at least one 0 or 1.</p>
+    <div class="scroll"><canvas id="le-cv" aria-label="Encoded waveforms"></canvas></div>
+    <div class="scroll"><table class="t" id="le-stats"></table></div>
+  </div>
+  <details><summary>Viva questions</summary><ol>
+    <li>Why does Manchester encoding need twice the bandwidth of NRZ?</li>
+    <li>Which of these schemes have no DC component for any input? Check the DC column.</li>
+    <li>What problem does NRZ-I solve over NRZ-L, and which input still breaks it?</li>
+    <li>Which Ethernet standard uses Manchester encoding, and what replaced it at higher speeds?</li>
+  </ol></details>
+</section>
+
+<!-- ============ P2 ============ -->
+<section id="exp2" class="exp" hidden>
+  <div><span class="eyebrow">Practical 2 · Units I &amp; IV · CO1, CO4</span>
+  <h2>Small LAN, network commands and switch port VLANs</h2>
+  <p class="aim"><b>Aim:</b> Set up a four-computer LAN on a switch, assign unique IP addresses, practise ping, ipconfig, arp, netstat, nbtstat, nslookup, route, tracert, pathping and nmap, and assign switch ports to VLANs.</p></div>
+  <details><summary>Theory</summary><div>
+    <p>Each PC gets a unique address in 192.168.1.0/24 with R1 (192.168.1.1) as default gateway. Before the first ping to a local host, the PC sends an ARP request to learn the MAC address; the entry then appears in <code>arp -a</code>. A switch forwards frames only between ports in the same VLAN, so two PCs on different VLANs cannot reach each other even on the same subnet. Here R1's port Fa0/24 is in VLAN 1, so only VLAN 1 hosts reach the gateway and the Internet.</p>
+    <p>Click a PC to open its command prompt. Move a port to VLAN 10 or 20 and repeat your pings to see the effect. All addresses outside the lab are simulated.</p>
+  </div></details>
+  <div class="bench">
+    <div class="two">
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div class="scroll"><svg id="net" viewBox="0 0 640 300" style="width:100%;min-width:420px;display:block" role="img" aria-label="LAN topology"></svg></div>
+        <div class="ctrls" id="net-vlans"></div>
+        <div><p class="lab" style="margin:0 0 6px">SW1# show vlan brief</p><pre id="sw-vlan"></pre></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+        <div class="term"><pre id="term-out" aria-live="polite"></pre>
+          <div class="in"><span id="term-pr">C:\&gt;</span><input id="term-in" type="text" autocomplete="off" spellcheck="false" aria-label="Command"></div></div>
+        <div class="qk" id="term-qk"></div>
+      </div>
+    </div>
+  </div>
+  <details><summary>Viva questions</summary><ol>
+    <li>What is the difference between a hub and a switch in how they forward a frame?</li>
+    <li>Why does ping fail between two PCs on different VLANs even though both are in 192.168.1.0/24?</li>
+    <li>How does tracert discover each hop? Which ICMP message comes back?</li>
+    <li>When is an entry added to the ARP cache, and why is the gateway's MAC shown for remote hosts?</li>
+  </ol></details>
+</section>
+
+<!-- ============ P3 ============ -->
+<section id="exp3" class="exp" hidden>
+  <div><span class="eyebrow">Practical 3 · Unit II · CO2</span>
+  <h2>Error detection and correction: Hamming code and CRC</h2>
+  <p class="aim"><b>Aim:</b> Encode a 7/8-bit ASCII character with a Hamming code or CRC, inject bit errors in the channel, and detect or correct them at the receiver. Extend to the CRC-32 FCS used by Ethernet.</p></div>
+  <details><summary>Theory</summary><div>
+    <p><b>Hamming code:</b> for m data bits choose r parity bits with 2<sup>r</sup> ≥ m + r + 1, placed at positions 1, 2, 4, 8. Each parity bit gives even parity over the positions whose index has that bit set. At the receiver, XOR of the positions of all 1-bits is the syndrome. Syndrome 0 means no error; otherwise it is the position of the single flipped bit.</p>
+    <p><b>CRC:</b> append r zeros (r = degree of the generator) and divide by the generator using mod-2 (XOR) division. The remainder is the CRC and is appended to the data. The receiver divides the whole codeword; a non-zero remainder means an error. Ethernet uses CRC-32 (0x04C11DB7) as its Frame Check Sequence.</p>
+  </div></details>
+  <div class="bench">
+    <div class="ctrls">
+      <div class="f"><span>Method</span><div class="seg"><label><input type="radio" name="ec-m" id="ec-mh" value="h" checked>Hamming</label><label><input type="radio" name="ec-m" id="ec-mc" value="c">CRC</label></div></div>
+      <label class="f"><span>Character</span><input type="text" id="ec-ch" value="K" maxlength="1" style="width:60px"></label>
+      <div class="f" id="ec-wbox"><span>ASCII width</span><div class="seg"><label><input type="radio" name="ec-w" id="ec-w7" value="7" checked>7-bit</label><label><input type="radio" name="ec-w" id="ec-w8" value="8">8-bit</label></div></div>
+      <label class="f" id="ec-gbox" hidden><span>Generator</span><select id="ec-g">
+        <option value="1011">CRC-3 · x³+x+1 (1011)</option>
+        <option value="10011" selected>CRC-4 · x⁴+x+1 (10011)</option>
+        <option value="100000111">CRC-8 · x⁸+x²+x+1 (100000111)</option>
+      </select></label>
+      <button id="ec-clr">Clear errors</button>
+    </div>
+    <p class="note">Click any bit in the <b>Received</b> row to flip it, as the channel would.</p>
+    <div id="ec-out" style="display:flex;flex-direction:column;gap:12px"></div>
+    <div style="border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:8px">
+      <p class="lab" style="margin:0">Extension · Ethernet CRC-32 FCS</p>
+      <label class="f"><span>Frame payload (text)</span><input type="text" id="ec-eth" value="123456789"></label>
+      <pre id="ec-eth-out"></pre>
+    </div>
+  </div>
+  <details><summary>Viva questions</summary><ol>
+    <li>How many parity bits are needed for 7 data bits? For 8?</li>
+    <li>Flip two bits in the Hamming codeword. Why does the receiver "correct" the wrong bit?</li>
+    <li>Why is the CRC exactly r bits long for a generator of degree r?</li>
+    <li>Which error patterns is CRC-32 guaranteed to detect?</li>
+  </ol></details>
+</section>
+
+<!-- ============ P4 ============ -->
+<section id="exp4" class="exp" hidden>
+  <div><span class="eyebrow">Practical 4 · Unit II · CO2</span>
+  <h2>Sliding window: Go-Back-N and Selective Repeat</h2>
+  <p class="aim"><b>Aim:</b> Simulate Go-Back-N and Selective Repeat ARQ in peer-to-peer mode and observe how each recovers from lost frames and lost acknowledgements.</p></div>
+  <details><summary>Theory</summary><div>
+    <p><b>Go-Back-N:</b> the sender may have N unacknowledged frames in flight and keeps one timer for the oldest. The receiver accepts only the next in-order frame and sends cumulative ACKs (ACK n = all frames up to n received). On timeout the sender resends every outstanding frame. With m-bit sequence numbers, N ≤ 2<sup>m</sup> − 1.</p>
+    <p><b>Selective Repeat:</b> each frame has its own timer and the receiver buffers out-of-order frames inside its window, acknowledging each one individually. Only the lost frame is resent. N ≤ 2<sup>m−1</sup>.</p>
+    <p>Click a frame or ACK while it is in flight to lose it. The loss slider drops packets at random.</p>
+  </div></details>
+  <div class="bench">
+    <div class="ctrls">
+      <div class="f"><span>Protocol</span><div class="seg"><label><input type="radio" name="sw-p" value="GBN" checked>Go-Back-N</label><label><input type="radio" name="sw-p" value="SR">Selective Repeat</label></div></div>
+      <label class="f"><span>Window N</span><select id="sw-n"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>7</option></select></label>
+      <label class="f"><span>Frames</span><select id="sw-total"><option>8</option><option selected>12</option><option>16</option></select></label>
+      <label class="f"><span>Random loss <output id="sw-lv">0%</output></span><input type="range" id="sw-loss" min="0" max="40" value="0"></label>
+      <label class="f"><span>Speed <output id="sw-sv">1×</output></span><input type="range" id="sw-speed" min="0.5" max="3" step="0.5" value="1"></label>
+      <button class="pri" id="sw-run">Start</button><button id="sw-reset">Reset</button>
+    </div>
+    <div class="scroll"><canvas id="sw-cv" aria-label="Sliding window animation"></canvas></div>
+    <div class="legend"><span><i style="background:var(--soft);border-color:var(--accent)"></i>Sent, unacked</span><span><i style="background:var(--ok)"></i>Acked / delivered</span><span><i style="background:var(--sig)"></i>Buffered out of order</span><span><i style="border:2px solid var(--accent)"></i>Window</span><span><i style="background:var(--warn)"></i>Timer running</span></div>
+    <div class="stat" id="sw-stat"></div>
+    <ul class="log" id="sw-log" aria-live="polite"></ul>
+  </div>
+  <details><summary>Viva questions</summary><ol>
+    <li>With 3-bit sequence numbers, what is the largest window for GBN and for SR? Why?</li>
+    <li>Lose frame 2 in GBN. How many frames are retransmitted? Repeat in SR.</li>
+    <li>Lose only an ACK in GBN while later ACKs get through. Why is there no retransmission?</li>
+    <li>Which protocol needs more buffer space at the receiver, and how much?</li>
+  </ol></details>
+</section>
+
+<!-- ============ P5 ============ -->
+<section id="exp5" class="exp" hidden>
+  <div><span class="eyebrow">Practical 5 · Unit IV · CO4</span>
+  <h2>Dynamic routing with single-area OSPFv2</h2>
+  <p class="aim"><b>Aim:</b> Deploy OSPFv2 in area 0 across six routers, observe the shortest-path tree computed by each router, and see how link failures and the reference bandwidth change the routes.</p></div>
+  <details><summary>Theory</summary><div>
+    <p>OSPF is a link-state protocol. Every router floods LSAs describing its links, builds the same link-state database, and runs Dijkstra's SPF algorithm with itself as root. Interface cost = reference bandwidth ÷ interface bandwidth (minimum 1). With the default reference of 100 Mbps, FastEthernet and Gigabit links both cost 1, which is why <code>auto-cost reference-bandwidth</code> is raised on modern networks.</p>
+    <p>Click a router to make it the SPF root. Click a link (or use the table) to bring it down. Each router has a LAN 192.168.<i>n</i>.0/24.</p>
+  </div></details>
+  <div class="bench">
+    <div class="ctrls">
+      <label class="f"><span>Router</span><select id="os-src"></select></label>
+      <label class="f"><span>Reference bandwidth</span><select id="os-ref"><option value="100">100 Mbps (default)</option><option value="10000" selected>10 Gbps</option></select></label>
+    </div>
+    <div class="two">
+      <div class="scroll"><svg id="ospf" viewBox="0 0 640 340" style="width:100%;min-width:420px;display:block" role="img" aria-label="OSPF topology"></svg></div>
+      <div class="scroll"><table class="t" id="os-links"></table></div>
+    </div>
+    <div class="two">
+      <div><p class="lab" style="margin:0 0 6px" id="os-rt-h"></p><pre id="os-rt"></pre></div>
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div><p class="lab" style="margin:0 0 6px" id="os-nb-h"></p><pre id="os-nb"></pre></div>
+        <div><p class="lab" style="margin:0 0 6px">Configuration</p><pre id="os-cfg"></pre></div>
+      </div>
+    </div>
+  </div>
+  <details><summary>Viva questions</summary><ol>
+    <li>Switch the reference bandwidth to 100 Mbps. Which routes change from R1, and why?</li>
+    <li>How is the OSPF router ID chosen when none is configured?</li>
+    <li>List the neighbour states an adjacency passes through before FULL.</li>
+    <li>What is the wildcard mask in the <code>network</code> command, and why is area 0 required?</li>
+  </ol></details>
+</section>
+
+<!-- ============ P6 ============ -->
+<section id="exp6" class="exp" hidden>
+  <div><span class="eyebrow">Practical 6 · Unit V · CO5</span>
+  <h2>TCP Berkeley socket applications</h2>
+  <p class="aim"><b>Aim:</b> Use TCP socket primitives for a hello exchange, file transfer, arithmetic calculator and trigonometric calculator, and analyse the captured segments.</p></div>
+  <details><summary>Theory</summary><div>
+    <p>Server: <code>socket() → bind() → listen() → accept()</code> blocks until a client completes the three-way handshake. Client: <code>socket() → connect()</code> sends SYN. Both sides then <code>send()/recv()</code>; <code>close()</code> sends FIN. Sequence numbers count bytes; SYN and FIN each consume one. Seq/Ack values below are relative, as Wireshark shows them by default.</p>
+  </div></details>
+  <div class="bench">
+    <div class="ctrls">
+      <label class="f"><span>Application</span><select id="tc-app">
+        <option value="hello">a. Say hello</option><option value="file">b. File transfer</option>
+        <option value="calc">c. Calculator (arithmetic)</option><option value="trig">d. Calculator (trigonometry)</option></select></label>
+      <span class="ctrls" data-app="hello"><label class="f"><span>Client message</span><input type="text" id="tc-msg" value="Hello from client"></label></span>
+      <span class="ctrls" data-app="file" hidden><label class="f"><span>File</span><select id="tc-file"><option value="4096">notes.txt · 4 KB</option><option value="16384" selected>lab.pdf · 16 KB</option><option value="65536">photo.jpg · 64 KB</option></select></label></span>
+      <span class="ctrls" data-app="calc" hidden><label class="f"><span>A</span><input type="number" id="tc-a" value="12" style="width:80px"></label>
+        <label class="f"><span>Op</span><select id="tc-op"><option>+</option><option>-</option><option selected>*</option><option>/</option><option>%</option></select></label>
+        <label class="f"><span>B</span><input type="number" id="tc-b" value="7" style="width:80px"></label></span>
+      <span class="ctrls" data-app="trig" hidden><label class="f"><span>Function</span><select id="tc-fn"><option>sin</option><option>cos</option><option>tan</option></select></label>
+        <label class="f"><span>Angle (°)</span><input type="number" id="tc-deg" value="30" style="width:80px"></label></span>
+      <button class="pri" id="tc-run">Run session</button>
+    </div>
+    <div class="two">
+      <div class="scroll" style="max-height:540px;overflow-y:auto" id="tc-ladder"></div>
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+        <div class="scroll" style="max-height:380px;overflow-y:auto" id="tc-table"></div>
+        <pre id="tc-detail">Click a packet row for details.</pre>
+      </div>
+    </div>
+  </div>
+  <details><summary>Viva questions</summary><ol>
+    <li>Which socket calls block on the server side, and until what event?</li>
+    <li>Why does the ACK after the SYN carry Ack=1 when no data has been sent?</li>
+    <li>In the file transfer, why does the server send fewer ACKs than data segments?</li>
+    <li>What is the purpose of the TIME_WAIT state after the final ACK?</li>
+  </ol></details>
+</section>
+
+<!-- ============ P7 ============ -->
+<section id="exp7" class="exp" hidden>
+  <div><span class="eyebrow">Practical 7 · Unit V · CO5</span>
+  <h2>UDP file transfer</h2>
+  <p class="aim"><b>Aim:</b> Transfer a script, text, audio and video file between two machines with UDP sockets and analyse what happens when datagrams are lost.</p></div>
+  <details><summary>Theory</summary><div>
+    <p>UDP has no connection setup, acknowledgements or retransmission: <code>socket() → bind()</code> on the receiver, then <code>sendto()/recvfrom()</code>. Each datagram here carries a 4-byte application sequence number so the receiver can detect gaps. Adding acknowledgement and retransmission in the application (as TFTP does) restores reliability at the cost of extra traffic.</p>
+  </div></details>
+  <div class="bench">
+    <div class="ctrls">
+      <label class="f"><span>File</span><select id="ud-file">
+        <option value="script|backup.sh|3200">Script · backup.sh · 3.2 KB</option>
+        <option value="text|syllabus.txt|12800">Text · syllabus.txt · 12.5 KB</option>
+        <option value="audio|lecture.mp3|491520" selected>Audio · lecture.mp3 · 480 KB</option>
+        <option value="video|demo.mp4|2457600">Video · demo.mp4 · 2.4 MB</option></select></label>
+      <label class="f"><span>Payload per datagram</span><select id="ud-pl"><option>512</option><option selected>1024</option><option>1468</option></select></label>
+      <label class="f"><span>Loss rate <output id="ud-lv">2%</output></span><input type="range" id="ud-loss" min="0" max="20" value="2"></label>
+      <label class="chk"><input type="checkbox" id="ud-rt"> App-level ACK + retransmit</label>
+      <button class="pri" id="ud-run">Send file</button>
+    </div>
+    <div class="stat" id="ud-stat"></div>
+    <div id="ud-verdict"></div>
+    <div class="legend"><span><i style="background:var(--ok)"></i>Received</span><span><i style="background:var(--bad)"></i>Lost</span><span><i style="background:var(--warn)"></i>Recovered by retransmission</span></div>
+    <div class="dg" id="ud-grid" aria-label="Datagram map"></div>
+    <div class="scroll" id="ud-table"></div>
+  </div>
+  <details><summary>Viva questions</summary><ol>
+    <li>Why is there no handshake in the UDP trace?</li>
+    <li>What happens to the script file if one datagram is lost? What about the video?</li>
+    <li>What is the largest UDP payload that fits in one Ethernet frame without IP fragmentation?</li>
+    <li>How does TFTP make file transfer over UDP reliable?</li>
+  </ol></details>
+</section>
+
+<!-- ============ P8 ============ -->
+<section id="exp8" class="exp" hidden>
+  <div><span class="eyebrow">Practical 8 · Units IV &amp; V · CO4</span>
+  <h2>Protocol stack: Ethernet, IP, TCP and UDP packet formats</h2>
+  <p class="aim"><b>Aim:</b> Generate a custom packet, inspect every header field the way Wireshark dissects it, and see how checksums, padding and the FCS are computed.</p></div>
+  <details><summary>Theory</summary><div>
+    <p>An Ethernet II frame carries a 14-byte header (destination MAC, source MAC, EtherType) and a 4-byte FCS. Frames shorter than 64 bytes are padded. The IPv4 header (20 bytes without options) has its own checksum. TCP and UDP checksums cover a pseudo-header (source IP, destination IP, protocol, length) plus the segment. Hover a field or a byte to link the two views.</p>
+  </div></details>
+  <div class="bench">
+    <div class="grid4">
+      <label class="f"><span>Source MAC</span><input type="text" id="pb-smac" value="00:1a:2b:3c:4d:10"></label>
+      <label class="f"><span>Destination MAC</span><input type="text" id="pb-dmac" value="00:1a:2b:3c:4d:11"></label>
+      <label class="f"><span>Source IP</span><input type="text" id="pb-sip" value="192.168.1.10"></label>
+      <label class="f"><span>Destination IP</span><input type="text" id="pb-dip" value="192.168.1.11"></label>
+      <label class="f"><span>TTL</span><input type="number" id="pb-ttl" value="64" min="1" max="255"></label>
+      <label class="f"><span>Transport</span><select id="pb-proto"><option value="6">TCP</option><option value="17">UDP</option></select></label>
+      <label class="f"><span>Source port</span><input type="number" id="pb-sp" value="50512" min="0" max="65535"></label>
+      <label class="f"><span>Destination port</span><input type="number" id="pb-dp" value="5000" min="0" max="65535"></label>
+      <label class="f" data-tcp><span>Sequence number</span><input type="number" id="pb-seq" value="1" min="0"></label>
+      <label class="f" style="grid-column:1/-1"><span>Payload</span><input type="text" id="pb-data" value="Hello VIT"></label>
+    </div>
+    <div class="chks" data-tcp id="pb-flags"></div>
+    <p class="err" id="pb-err" hidden></p>
+    <div class="two">
+      <div id="pb-tree" class="tree"></div>
+      <div id="pb-hex" class="hex"></div>
+    </div>
+  </div>
+  <details><summary>Viva questions</summary><ol>
+    <li>Change the TTL. Which other field changes, and why must routers recompute it?</li>
+    <li>What is the pseudo-header, and why is it included in the TCP/UDP checksum?</li>
+    <li>Shorten the payload to 1 character. Why does padding appear?</li>
+    <li>What are the offsets of the IP protocol field and the TCP flags in the frame?</li>
+  </ol></details>
+</section>
+
+<!-- ============ P9 ============ -->
+<section id="exp9" class="exp" hidden>
+  <div><span class="eyebrow">Practical 9 · Unit VI · CO6</span>
+  <h2>HTTP/1.0, 1.1 and 2.0 behaviour with success and error codes</h2>
+  <p class="aim"><b>Aim:</b> Compare how each HTTP version loads a page with embedded objects and inspect requests and responses for success, redirection, client-error and server-error status codes.</p></div>
+  <details><summary>Theory</summary><div>
+    <p><b>HTTP/1.0</b> opens a new TCP connection for every object (2 RTT each). <b>HTTP/1.1</b> keeps the connection open (persistent) and allows pipelining: several requests sent without waiting, but responses must return in order, so one large object blocks the rest (head-of-line blocking). <b>HTTP/2</b> multiplexes many streams over one connection as binary frames, so a large object no longer blocks small ones.</p>
+    <p>There is no published HTTP/1.2 standard. The "1.2" in the syllabus is shown here as HTTP/1.1 with pipelining, the step between 1.1 and 2.0.</p>
+  </div></details>
+  <div class="bench">
+    <div class="ctrls">
+      <label class="f"><span>Embedded objects <output id="ht-nv">6</output></span><input type="range" id="ht-n" min="1" max="12" value="6"></label>
+      <label class="f"><span>RTT <output id="ht-rv">100 ms</output></span><input type="range" id="ht-rtt" min="20" max="300" step="10" value="100"></label>
+      <label class="chk"><input type="checkbox" id="ht-big" checked> First image is large (6× size)</label>
+    </div>
+    <div class="scroll" id="ht-wf"></div>
+    <div style="border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:12px">
+      <p class="lab" style="margin:0">Request / response viewer</p>
+      <div class="ctrls">
+        <div class="f"><span>Version</span><div class="seg" id="ht-ver"><label><input type="radio" name="ht-v" value="1.0">HTTP/1.0</label><label><input type="radio" name="ht-v" value="1.1" checked>HTTP/1.1</label><label><input type="radio" name="ht-v" value="2">HTTP/2</label></div></div>
+        <label class="f" style="flex:1 1 260px"><span>Request</span><select id="ht-req"></select></label>
+      </div>
+      <div class="two"><div><p class="lab" style="margin:0 0 6px">Firefox → server</p><pre id="ht-q"></pre></div><div><p class="lab" style="margin:0 0 6px">Server → Firefox</p><pre id="ht-r"></pre></div></div>
+      <p class="note" id="ht-why"></p>
+    </div>
+  </div>
+  <details><summary>Viva questions</summary><ol>
+    <li>How many RTTs does HTTP/1.0 need for a page with N embedded images?</li>
+    <li>Turn on the large image. Why does pipelining not help the other images, while HTTP/2 does?</li>
+    <li>When does a server reply 304 Not Modified, and what does the browser do next?</li>
+    <li>Why is the Host header mandatory in HTTP/1.1 but absent in HTTP/1.0?</li>
+  </ol></details>
+</section>
+</main>
+</div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let TK={}; const tok=n=>TK[n]??=getComputedStyle(document.documentElement).getPropertyValue('--'+n).trim();
+function fitCanvas(cv,h,minW=0){const dpr=devicePixelRatio||1,w=Math.max(minW,cv.parentElement.clientWidth);cv.width=w*dpr;cv.height=h*dpr;cv.style.width=w+'px';cv.style.height=h+'px';const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);return{g,w,h}}
+const inits={},redraws={};let cur=null;
+function show(){let id=location.hash.slice(1);if(!inits[id])id='exp1';
+  $$('.exp').forEach(s=>s.hidden=s.id!==id);$$('.side a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+id));
+  cur=id;if(!inits[id].done){inits[id].done=true;inits[id]()}redraws[id]?.()}
+function rethemed(){TK={};redraws[cur]?.()}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',rethemed);
+new MutationObserver(rethemed).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>redraws[cur]?.(),120)});
+const traceTable=rows=>`<table class="t pk"><thead><tr><th>No.</th><th>Time</th><th>Source</th><th>Destination</th><th>Protocol</th><th>Length</th><th>Info</th></tr></thead><tbody>${rows.map((r,i)=>`<tr data-i="${i}"><td>${i+1}</td><td>${r.t.toFixed(6)}</td><td>${r.src}</td><td>${r.dst}</td><td>${r.proto}</td><td>${r.len}</td><td>${esc(r.info)}</td></tr>`).join('')}</tbody></table>`;
+
+/* ---------- P1 line encoding ---------- */
+const SCH=[
+ ['Unipolar NRZ',b=>b.flatMap(x=>[x,x]),'No'],
+ ['Polar NRZ-L',b=>b.flatMap(x=>x?[1,1]:[-1,-1]),'No'],
+ ['NRZ-I',b=>{let l=-1;return b.flatMap(x=>{if(x)l=-l;return[l,l]})},'Only on 1s'],
+ ['Bipolar AMI',b=>{let p=-1;return b.flatMap(x=>{if(!x)return[0,0];p=-p;return[p,p]})},'Only on 1s'],
+ ['Manchester',b=>b.flatMap(x=>x?[-1,1]:[1,-1]),'Yes'],
+ ['Diff. Manchester',b=>{let p=1;return b.flatMap(x=>{const a=x?p:-p;p=-a;return[a,-a]})},'Yes'],
+];
+inits.exp1=()=>{
+  $('#le-schemes').innerHTML=SCH.map((s,i)=>`<label class="chk"><input type="checkbox" id="le-s${i}" checked> ${s[0]}</label>`).join('');
+  $('#le-schemes').onchange=draw;$('#le-bits').oninput=draw;
+  $('#le-rand').onclick=()=>{$('#le-bits').value=Array.from({length:12},()=>Math.random()<.5?0:1).join('');draw()};
+  redraws.exp1=draw;
+  function draw(){
+    const bits=[...$('#le-bits').value.replace(/[^01]/g,'').slice(0,24)].map(Number);
+    $('#le-err').hidden=bits.length>0;
+    const on=SCH.filter((s,i)=>$('#le-s'+i).checked), cv=$('#le-cv');
+    const rowH=78,top=30,{g,w,h}=fitCanvas(cv,top+Math.max(1,on.length)*rowH+6,460);
+    g.clearRect(0,0,w,h);if(!bits.length)return;
+    const L=w<640?96:124,n=bits.length,bw=(w-L-12)/n,A=24;
+    g.font='500 12px "IBM Plex Mono",monospace';g.textAlign='center';g.textBaseline='middle';
+    for(let i=0;i<=n;i++){const x=L+i*bw;g.strokeStyle=tok('grid');g.lineWidth=1;g.beginPath();g.moveTo(x,top-4);g.lineTo(x,h-4);g.stroke()}
+    bits.forEach((b,i)=>{g.fillStyle=tok('ink');g.fillText(b,L+(i+.5)*bw,14)});
+    on.forEach(([name,fn],r)=>{
+      const y0=top+r*rowH+rowH/2, lv=fn(bits);
+      g.textAlign='left';g.fillStyle=tok('ink');g.font='600 12.5px "IBM Plex Sans",sans-serif';g.fillText(name,4,y0-8);
+      g.font='11px "IBM Plex Mono",monospace';g.fillStyle=tok('muted');g.fillText('+V / 0 / −V',4,y0+10);g.textAlign='center';
+      g.setLineDash([3,4]);g.strokeStyle=tok('line');g.beginPath();g.moveTo(L,y0);g.lineTo(w-12,y0);g.stroke();g.setLineDash([]);
+      g.strokeStyle=tok('sig');g.lineWidth=2.2;g.lineJoin='round';g.beginPath();
+      lv.forEach((v,k)=>{const x0=L+k*bw/2,y=y0-v*A;k?g.lineTo(x0,y):g.moveTo(x0,y);g.lineTo(x0+bw/2,y)});g.stroke();
+      if(r<on.length-1){g.strokeStyle=tok('line');g.lineWidth=1;g.beginPath();g.moveTo(0,y0+rowH/2);g.lineTo(w,y0+rowH/2);g.stroke()}
+    });
+    $('#le-stats').innerHTML='<thead><tr><th>Scheme</th><th>Levels</th><th>Transitions</th><th>DC (mean level)</th><th>Self-clocking</th></tr></thead><tbody>'+
+      on.map(([name,fn,clk])=>{const lv=fn(bits),tr=lv.filter((v,k)=>k&&v!==lv[k-1]).length,dc=lv.reduce((a,b)=>a+b,0)/lv.length;
+        return `<tr><td>${name}</td><td>${new Set(lv).size>2||name.startsWith('Bipolar')?3:2}</td><td>${tr}</td><td class="${Math.abs(dc)<1e-9?'ok':''}">${dc.toFixed(3)}</td><td>${clk}</td></tr>`}).join('')+'</tbody>';
+  }
+};
+
+/* ---------- P2 LAN + commands ---------- */
+inits.exp2=()=>{
+  const H=[0,1,2,3].map(i=>({n:'PC'+i,ip:'192.168.1.1'+i,mac:'00-1A-2B-3C-4D-1'+i,port:'Fa0/'+(i+1),vlan:1,x:80+i*160,y:250,arp:new Map()}));
+  const R={n:'R1',ip:'192.168.1.1',mac:'00-1A-2B-3C-4D-01',x:320,y:50}, SW={x:320,y:150}, CL={x:545,y:50};
+  const EXT={'8.8.8.8':'dns.google','203.0.113.25':'erp.vit.lab','198.51.100.80':'www.example.net'};
+  const DNS={'dns.google':'8.8.8.8','erp.vit.lab':'203.0.113.25','www.example.net':'198.51.100.80','r1.lab.local':R.ip};H.forEach(h=>DNS[h.n.toLowerCase()+'.lab.local']=h.ip);
+  let me=H[0];const out=$('#term-out'),inp=$('#term-in');
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  const say=(t,c='')=>{out.insertAdjacentHTML('beforeend',`<span class="${c}">${esc(t)}</span>\n`);out.scrollTop=out.scrollHeight};
+  const isIP=t=>/^(\d{1,3}\.){3}\d{1,3}$/.test(t);
+  const hostOf=ip=>H.find(h=>h.ip===ip)||(ip===R.ip?R:null);
+  const reach=ip=>{if(ip===me.ip)return true;const h=H.find(h=>h.ip===ip);if(h)return h.vlan===me.vlan;if(ip===R.ip||EXT[ip])return me.vlan===1;return false};
+  const resolve=t=>isIP(t)?t:(t.toLowerCase().endsWith('.lab.local')||me.vlan===1)?DNS[t.toLowerCase()]:null;
+  const svg=$('#net');
+  function draw(){
+    const vc=v=>v===1?tok('muted'):v===10?tok('v10'):tok('v20');
+    const ln=(a,b,c=tok('line'),wd=2)=>`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${c}" stroke-width="${wd}"/>`;
+    let s=ln(R,SW)+ln(R,CL,tok('line'),2)+H.map(h=>ln(SW,h,vc(h.vlan),h.vlan===1?2:3)).join('');
+    s+=`<ellipse cx="${CL.x}" cy="${CL.y}" rx="62" ry="26" fill="${tok('bg')}" stroke="${tok('line')}"/><text x="${CL.x}" y="${CL.y+4}" text-anchor="middle" font-size="12" fill="${tok('muted')}">Internet / ISP</text>`;
+    s+=`<rect x="${R.x-38}" y="${R.y-20}" width="76" height="40" rx="20" fill="${tok('panel')}" stroke="${tok('ink')}"/><text x="${R.x}" y="${R.y-2}" text-anchor="middle" font-size="13" font-weight="600" fill="${tok('ink')}">R1</text><text x="${R.x}" y="${R.y+12}" text-anchor="middle" font-size="10" fill="${tok('muted')}">.1 · Fa0/24</text>`;
+    s+=`<rect x="${SW.x-60}" y="${SW.y-18}" width="120" height="36" rx="4" fill="${tok('panel')}" stroke="${tok('ink')}"/><text x="${SW.x}" y="${SW.y+5}" text-anchor="middle" font-size="13" font-weight="600" fill="${tok('ink')}">SW1 (2960)</text>`;
+    H.forEach(h=>{const sel=h===me;s+=`<g class="pc" data-n="${h.n}" style="cursor:pointer" tabindex="0" role="button" aria-label="Open ${h.n} terminal"><rect x="${h.x-56}" y="${h.y-24}" width="112" height="58" rx="6" fill="${sel?tok('soft'):tok('panel')}" stroke="${sel?tok('accent'):vc(h.vlan)}" stroke-width="${sel?2.5:1.5}"/><text x="${h.x}" y="${h.y-6}" text-anchor="middle" font-size="13" font-weight="600" fill="${tok('ink')}">${h.n}</text><text x="${h.x}" y="${h.y+10}" text-anchor="middle" font-size="10.5" fill="${tok('muted')}">${h.ip}</text><text x="${h.x}" y="${h.y+25}" text-anchor="middle" font-size="10.5" fill="${vc(h.vlan)}">${h.port} · VLAN ${h.vlan}</text></g>`});
+    s+='<circle id="pkt" r="6" fill="transparent"/>';
+    svg.innerHTML=s;
+    $$('.pc',svg).forEach(g=>{const pick=()=>{me=H.find(h=>h.n===g.dataset.n);prompt();draw();inp.focus()};g.onclick=pick;g.onkeydown=e=>{if(e.key==='Enter')pick()}});
+    $('#sw-vlan').textContent=['VLAN Name     Status    Ports','---- -------- --------- -------------------------',...[1,10,20].map(v=>`${String(v).padEnd(4)} ${(v===1?'default':v===10?'LAB-A':'LAB-B').padEnd(8)} active    ${[...H.filter(h=>h.vlan===v).map(h=>h.port),...(v===1?['Fa0/24']:[])].join(', ')}`)].join('\n');
+  }
+  function anim(pts,ok){const c=$('#pkt');if(!c)return;let i=0,t0=performance.now();const seg=260;
+    (function f(ts){const k=Math.min(1,(ts-t0)/seg),a=pts[i],b=pts[i+1];if(!b){c.setAttribute('fill','transparent');return}
+      c.setAttribute('cx',a.x+(b.x-a.x)*k);c.setAttribute('cy',a.y+(b.y-a.y)*k);c.setAttribute('fill',ok||i<pts.length-2?tok('accent'):tok('bad'));
+      if(k>=1){i++;t0=ts}requestAnimationFrame(f)})(t0)}
+  $('#net-vlans').innerHTML=H.map((h,i)=>`<label class="f"><span>${h.port} · ${h.n}</span><select id="vl${i}"><option>1</option><option>10</option><option>20</option></select></label>`).join('');
+  H.forEach((h,i)=>$('#vl'+i).onchange=e=>{h.vlan=+e.target.value;h.arp.clear();draw()});
+  const prompt=()=>$('#term-pr').textContent=`C:\\Users\\${me.n}>`;
+  const pathTo=ip=>{const h=H.find(h=>h.ip===ip);if(h)return[me,SW,h];return ip===R.ip?[me,SW,R]:[me,SW,R,CL]};
+  const learn=ip=>{const h=hostOf(ip);if(h&&h!==me)me.arp.set(h.ip,h.mac);else if(EXT[ip])me.arp.set(R.ip,R.mac)};
+  const ms=ip=>H.some(h=>h.ip===ip)||ip===R.ip?'<1ms':(18+Math.floor(Math.random()*14))+'ms';
+  const ttl=ip=>H.some(h=>h.ip===ip)?128:ip===R.ip?255:117;
+  async function ping(t){const ip=resolve(t);if(!ip){say(`Ping request could not find host ${t}. Please check the name and try again.`,'o-bad');return}
+    say(`\nPinging ${t!==ip?t+' ['+ip+']':ip} with 32 bytes of data:`);const ok=reach(ip),known=hostOf(ip)||EXT[ip]||ip===me.ip;
+    for(let i=0;i<4;i++){if(i===0&&ip!==me.ip)anim(pathTo(ip),ok&&known);await sleep(380);
+      const tm=ms(ip);
+      if(ok&&known)say(`Reply from ${ip}: bytes=32 time${tm.startsWith('<')?tm:'='+tm} TTL=${ttl(ip)}`,'o-ok');
+      else if(ip.startsWith('192.168.1.'))say(`Reply from ${me.ip}: Destination host unreachable.`,'o-bad');
+      else say('Request timed out.','o-bad')}
+    const rec=ok&&known?4:0;say(`\nPing statistics for ${ip}:\n    Packets: Sent = 4, Received = ${rec}, Lost = ${4-rec} (${(4-rec)*25}% loss),`);if(rec)learn(ip)}
+  async function trace(t,path){const ip=resolve(t);if(!ip){say(`Unable to resolve target system name ${t}.`,'o-bad');return}
+    say(`\nTracing route to ${t!==ip?t+' ['+ip+']':ip}\nover a maximum of 30 hops:\n`);
+    const local=H.some(h=>h.ip===ip)||ip===R.ip;const hops=local?[ip]:[R.ip,'10.10.0.1','203.0.113.1',ip];
+    for(let i=0;i<hops.length;i++){await sleep(420);const okh=local?reach(ip):(me.vlan===1);
+      if(!okh){say(`  ${i+1}     *        *        *     Request timed out.`,'o-bad');if(i>=2)break;continue}
+      const d=hops[i]===R.ip||local?'<1 ms':`${10+i*6} ms`;say(`  ${String(i+1).padEnd(4)}${d.padStart(6)}  ${d.padStart(6)}  ${d.padStart(6)}  ${hops[i]}`,'o-ok')}
+    if(path){say('\nComputing statistics for 25 seconds...\n            Source to Here   This Node/Link\nHop  RTT    Lost/Sent = Pct  Lost/Sent = Pct  Address');
+      await sleep(500);const okp=local?reach(ip):me.vlan===1;hops.forEach((hp,i)=>say(`  ${i+1}  ${okp?(i?10+i*6+'ms':'0ms').padEnd(5):'---  '}  ${okp?'0':'100'}/ 100 = ${okp?'0':'100'}%   0/ 100 =  0%  ${hp}`,okp?'o-ok':'o-bad'))}
+    say('\nTrace complete.')}
+  const CMDS={
+    help:()=>say('ping, tracert, pathping, ipconfig [/all], ifconfig, arp -a, netstat -an, nbtstat -n, nslookup, route print, nmap, hostname, cls'),
+    hostname:()=>say(me.n),
+    ipconfig:a=>{say(`\nEthernet adapter Ethernet:\n\n   Connection-specific DNS Suffix  . : lab.local${a[0]==='/all'?`\n   Physical Address. . . . . . . . . : ${me.mac}\n   DHCP Enabled. . . . . . . . . . . : No`:''}\n   IPv4 Address. . . . . . . . . . . : ${me.ip}\n   Subnet Mask . . . . . . . . . . . : 255.255.255.0\n   Default Gateway . . . . . . . . . : ${R.ip}${a[0]==='/all'?'\n   DNS Servers . . . . . . . . . . . : 8.8.8.8':''}`)},
+    ifconfig:()=>say(`eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500\n        inet ${me.ip}  netmask 255.255.255.0  broadcast 192.168.1.255\n        ether ${me.mac.toLowerCase().replace(/-/g,':')}  txqueuelen 1000  (Ethernet)`),
+    arp:()=>{say(`\nInterface: ${me.ip} --- 0xb\n  Internet Address      Physical Address      Type`);if(!me.arp.size)say('  (no entries yet — ping a host first)','o-dim');me.arp.forEach((m,ip)=>say(`  ${ip.padEnd(22)}${m.toLowerCase().padEnd(22)}dynamic`));say(`  192.168.1.255         ff-ff-ff-ff-ff-ff     static`)},
+    netstat:()=>say(`\nActive Connections\n\n  Proto  Local Address          Foreign Address        State\n  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING\n  TCP    0.0.0.0:445            0.0.0.0:0              LISTENING\n  TCP    ${me.ip}:139       0.0.0.0:0              LISTENING${me.vlan===1?`\n  TCP    ${me.ip}:50744     203.0.113.25:443       ESTABLISHED`:''}\n  UDP    ${me.ip}:137       *:*\n  UDP    ${me.ip}:138       *:*`),
+    nbtstat:()=>say(`\nEthernet:\nNode IpAddress: [${me.ip}] Scope Id: []\n\n                NetBIOS Local Name Table\n\n       Name               Type         Status\n    ---------------------------------------------\n    ${me.n.padEnd(15)}<00>  UNIQUE      Registered\n    LAB            <00>  GROUP       Registered\n    ${me.n.padEnd(15)}<20>  UNIQUE      Registered`),
+    nslookup:async a=>{const t=a[0];if(!t){say('Usage: nslookup <name>');return}await sleep(300);
+      if(t.toLowerCase().endsWith('.lab.local')){say(`Server:  r1.lab.local\nAddress:  ${R.ip}\n\nName:    ${t}\nAddress:  ${DNS[t.toLowerCase()]||'*** not found'}`,DNS[t.toLowerCase()]?'':'o-bad');return}
+      if(me.vlan!==1){say('DNS request timed out.\n    timeout was 2 seconds.\n*** Request to UnKnown timed-out','o-bad');return}
+      const ip=DNS[t.toLowerCase()];say(`Server:  dns.google\nAddress:  8.8.8.8\n`);say(ip?`Non-authoritative answer:\nName:    ${t}\nAddress:  ${ip}`:`*** dns.google can't find ${t}: Non-existent domain`,ip?'':'o-bad')},
+    route:()=>say(`\nIPv4 Route Table\n===========================================================================\nNetwork Destination        Netmask          Gateway       Interface  Metric\n          0.0.0.0          0.0.0.0      ${R.ip}    ${me.ip}     25\n        127.0.0.0        255.0.0.0         On-link         127.0.0.1    331\n      192.168.1.0    255.255.255.0         On-link     ${me.ip}    281\n     ${me.ip}  255.255.255.255         On-link     ${me.ip}    281\n    192.168.1.255  255.255.255.255         On-link     ${me.ip}    281`),
+    nmap:async a=>{const ip=resolve(a[0]||'');if(!ip){say('Usage: nmap <ip>');return}say(`\nStarting Nmap 7.94 ( https://nmap.org )`);await sleep(700);
+      if(!reach(ip)||!(hostOf(ip)||EXT[ip]||ip===me.ip)){say('Note: Host seems down. If it is really up, but blocking our ping probes, try -Pn','o-bad');return}
+      const p=ip===R.ip?['22/tcp  open  ssh','23/tcp  open  telnet','80/tcp  open  http']:EXT[ip]?['53/tcp  open  domain','80/tcp  open  http','443/tcp open  https']:['135/tcp open  msrpc','139/tcp open  netbios-ssn','445/tcp open  microsoft-ds'];
+      say(`Nmap scan report for ${ip}\nHost is up (0.0010s latency).\nNot shown: 997 filtered tcp ports\nPORT    STATE SERVICE\n${p.join('\n')}`,'o-ok');if(hostOf(ip)&&ip!==me.ip)learn(ip)},
+    ping:a=>a[0]?ping(a[0]):say('Usage: ping <host>'),tracert:a=>a[0]?trace(a[0]):say('Usage: tracert <host>'),traceroute:a=>CMDS.tracert(a),pathping:a=>a[0]?trace(a[0],true):say('Usage: pathping <host>'),
+    cls:()=>{out.textContent=''},clear:()=>{out.textContent=''}
+  };
+  let busy=false;
+  async function run(line){line=line.trim();if(!line||busy)return;say(`${$('#term-pr').textContent}${line}`,'o-cmd');const [c,...a]=line.split(/\s+/);const f=CMDS[c.toLowerCase()];
+    busy=true;try{f?await f(a):say(`'${c}' is not recognized as an internal or external command. Type help.`,'o-bad')}finally{busy=false}}
+  inp.onkeydown=e=>{if(e.key==='Enter'){run(inp.value);inp.value=''}};
+  $('#term-qk').innerHTML=['ipconfig /all','ping 192.168.1.11','arp -a','ping erp.vit.lab','tracert 8.8.8.8','nslookup www.example.net','netstat -an','route print','nmap 192.168.1.1','pathping 8.8.8.8','nbtstat -n'].map(c=>`<button>${c}</button>`).join('');
+  $('#term-qk').onclick=e=>{if(e.target.tagName==='BUTTON')run(e.target.textContent)};
+  prompt();say('Simulated Windows command prompt. Click a PC in the topology to switch hosts. Type help for commands.','o-dim');
+  redraws.exp2=draw;
+};
+
+/* ---------- P3 Hamming / CRC ---------- */
+const CRC32T=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc32=bytes=>{let c=0xFFFFFFFF;for(const b of bytes)c=CRC32T[(c^b)&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0};
+inits.exp3=()=>{
+  let flips=new Set();const ch=$('#ec-ch');
+  const mode=()=>$('input[name=ec-m]:checked').value, width=()=>+$('input[name=ec-w]:checked').value;
+  const dataBits=()=>{const c=(ch.value||'K').charCodeAt(0)&(mode()==='h'&&width()===7?127:255);const w=mode()==='h'?width():8;return[...c.toString(2).padStart(w,'0')].map(Number)};
+  const cellRow=(bits,cls,clickable,label)=>`<div class="row"><span class="lab">${label}</span><div class="cells">${bits.map((b,i)=>{const c=cls(i);return clickable?`<button class="cell ${c}" data-i="${i}" aria-label="Flip bit ${i+1}">${b}<small>${clickable==='pos'?i+1:''}</small></button>`:`<span class="cell ${c}">${b}<small>${label==='Sent'||label==='Corrected'?i+1:''}</small></span>`}).join('')}</div></div>`;
+  function hamming(){
+    const d=dataBits(),m=d.length;let r=0;while((1<<r)<m+r+1)r++;const n=m+r,isP=p=>(p&(p-1))===0;
+    const code=Array(n+1).fill(0);let k=0;for(let p=1;p<=n;p++)if(!isP(p))code[p]=d[k++];
+    for(let i=0;i<r;i++){const p=1<<i;let x=0;for(let q=1;q<=n;q++)if(q&p&&q!==p)x^=code[q];code[p]=x}
+    const sent=code.slice(1),rx=sent.map((b,i)=>flips.has(i)?b^1:b);
+    let syn=0;rx.forEach((b,i)=>{if(b)syn^=i+1});
+    const corr=rx.slice();if(syn>=1&&syn<=n)corr[syn-1]^=1;
+    const outD=[];for(let p=1;p<=n;p++)if(!isP(p))outD.push(corr[p-1]);const val=parseInt(outD.join(''),2);
+    const checks=[...Array(r)].map((_,i)=>{const p=1<<i,cov=[];for(let q=1;q<=n;q++)if(q&p)cov.push(q);const x=cov.reduce((a,q)=>a^rx[q-1],0);return`P${p} checks ${cov.join(',').padEnd(22)} → ${x}`});
+    const hit=flips.size===0?['ok',`Syndrome 0000 — no error. Received '${String.fromCharCode(val)}'.`]:flips.size===1&&syn-1===[...flips][0]?['ok',`Syndrome ${syn.toString(2).padStart(r,'0')} = position ${syn}. Bit ${syn} corrected → '${String.fromCharCode(val)}'.`]:['bad',`Syndrome ${syn.toString(2).padStart(r,'0')} points to position ${syn||'—'}${syn>n?' (out of range)':''}, but ${flips.size} bits were flipped. Hamming SEC cannot correct this; data decoded as '${String.fromCharCode(val)}' (0x${val.toString(16)}).`];
+    $('#ec-out').innerHTML=`<p class="mono" style="margin:0">'${esc(ch.value||'K')}' = ${d.join('')} (${m} data bits) → ${r} parity bits at 1,2,4${r>3?',8':''} → (${n},${m}) code</p>
+      ${cellRow(sent,i=>isP(i+1)?'p':'',false,'Sent')}${cellRow(rx,i=>flips.has(i)?'flip':isP(i+1)?'p':'', 'pos','Received')}${cellRow(corr,i=>syn-1===i&&syn?'fix':isP(i+1)?'p':'',false,'Corrected')}
+      <pre>${checks.join('\n')}\nSyndrome (P${[...Array(r)].map((_,i)=>1<<(r-1-i)).join(' P')}) = ${syn.toString(2).padStart(r,'0')} = ${syn}</pre><div class="verdict ${hit[0]}">${hit[1]}</div>`;
+  }
+  function crc(){
+    const d=dataBits(),G=$('#ec-g').value,r=G.length-1,g=[...G].map(Number);
+    const div=bits=>{const a=bits.slice(),lines=[a.join('')];for(let i=0;i+r<a.length;i++){if(!a[i])continue;for(let j=0;j<=r;j++)a[i+j]^=g[j];lines.push(' '.repeat(i)+G,' '.repeat(i)+'-'.repeat(G.length),a.join('').replace(/^0+(?=.)/,s=>' '.repeat(s.length)))}return{rem:a.slice(-r),lines}};
+    const tx=div([...d,...Array(r).fill(0)]),cw=[...d,...tx.rem],rx=cw.map((b,i)=>flips.has(i)?b^1:b),chk=div(rx),bad=chk.rem.some(b=>b);
+    $('#ec-out').innerHTML=`<p class="mono" style="margin:0">'${esc(ch.value||'K')}' = ${d.join('')} · generator ${G} (degree ${r}) · append ${r} zeros and divide</p>
+      <div class="two"><div><p class="lab" style="margin:0 0 6px">Sender: mod-2 division</p><pre>${tx.lines.join('\n')}\n\nCRC = ${tx.rem.join('')}</pre></div>
+      <div><p class="lab" style="margin:0 0 6px">Receiver: divide codeword</p><pre>${chk.lines.join('\n')}\n\nRemainder = ${chk.rem.join('')}</pre></div></div>
+      ${cellRow(cw,i=>i>=d.length?'r':'',false,'Codeword')}${cellRow(rx,i=>flips.has(i)?'flip':i>=d.length?'r':'','pos','Received')}
+      <div class="verdict ${bad?'bad':flips.size?'warn':'ok'}">${bad?`Remainder ${chk.rem.join('')} ≠ 0 → error detected, frame discarded. CRC detects but does not correct.`:flips.size?'Remainder 0 although bits were flipped: this error pattern is a multiple of the generator and goes undetected.':'Remainder 0 → frame accepted.'}</div>`;
+  }
+  function eth(){const b=[...new TextEncoder().encode($('#ec-eth').value)],c=crc32(b),h=c.toString(16).toUpperCase().padStart(8,'0'),le=[0,8,16,24].map(s=>((c>>>s)&255).toString(16).padStart(2,'0')).join(' ');
+    $('#ec-eth-out').textContent=`Polynomial  0x04C11DB7 (reflected 0xEDB88320), init 0xFFFFFFFF, final XOR 0xFFFFFFFF\nPayload     ${b.length} bytes\nCRC-32      0x${h}\nFCS on wire ${le}   (least-significant byte first)${$('#ec-eth').value==='123456789'?'\nCheck: CRC-32("123456789") must equal 0xCBF43926 ✓':''}`}
+  const draw=()=>{$('#ec-wbox').hidden=mode()!=='h';$('#ec-gbox').hidden=mode()!=='c';mode()==='h'?hamming():crc();eth()};
+  $('#ec-out').onclick=e=>{const b=e.target.closest('button.cell');if(!b)return;const i=+b.dataset.i;flips.has(i)?flips.delete(i):flips.add(i);draw()};
+  $$('input[name=ec-m],input[name=ec-w]').forEach(x=>x.onchange=()=>{flips.clear();draw()});
+  ch.oninput=$('#ec-g').onchange=()=>{flips.clear();draw()};$('#ec-eth').oninput=eth;$('#ec-clr').onclick=()=>{flips.clear();draw()};
+  redraws.exp3=draw;
+};
+
+/* ---------- P4 sliding window ---------- */
+inits.exp4=()=>{
+  const cv=$('#sw-cv'),PROP=2,GAP=0.45,TO=5.5;let S,running=false,last=0,geo;
+  const proto=()=>$('input[name=sw-p]:checked').value;
+  function log(m,c=''){S.log.unshift([S.now.toFixed(1),m,c]);S.log.length=Math.min(S.log.length,120);$('#sw-log').innerHTML=S.log.map(([t,m,c])=>`<li class="${c}">t=${t}s  ${esc(m)}</li>`).join('')}
+  function reset(){const T=+$('#sw-total').value;S={proto:proto(),N:+$('#sw-n').value,total:T,now:0,base:0,next:0,lastSend:-9,snd:Array(T).fill(0),rcv:Array(T).fill(0),exp:0,rbase:0,pk:[],timers:{},gt:null,sent:0,retx:0,acks:0,log:[]};
+    running=false;$('#sw-run').textContent='Start';log(`Ready: ${S.proto==='GBN'?'Go-Back-N':'Selective Repeat'}, window ${S.N}, ${T} frames. Press Start.`);draw();stat()}
+  const loss=()=>+$('#sw-loss').value/100;
+  function sendF(q,re){S.pk.push({k:'D',q,t0:S.now,doom:Math.random()<loss()});S.sent++;if(re)S.retx++;if(!S.snd[q])S.snd[q]=1;
+    if(S.proto==='SR')S.timers[q]=S.now;else if(S.gt===null)S.gt=S.now;log(`${re?'Retransmit':'Send'} F${q}`,re?'warn':'')}
+  function sendA(q){S.pk.push({k:'A',q,t0:S.now,doom:Math.random()<loss()});S.acks++}
+  function onData(q){
+    if(S.proto==='GBN'){if(q===S.exp){S.rcv[q]=2;S.exp++;log(`R: F${q} in order → deliver, send ACK${q}`,'ok');sendA(q)}
+      else{log(`R: F${q} out of order (expecting F${S.exp}) → discard${S.exp?`, resend ACK${S.exp-1}`:''}`,'warn');if(S.exp)sendA(S.exp-1)}}
+    else{if(q>=S.rbase&&q<S.rbase+S.N){const dup=S.rcv[q];if(!dup)S.rcv[q]=1;log(`R: F${q} ${q===S.rbase?'in order':'buffered'} → ACK${q}`,q===S.rbase?'ok':'');sendA(q);
+        while(S.rcv[S.rbase]===1){S.rcv[S.rbase]=2;S.rbase++}}
+      else{log(`R: duplicate F${q} → re-ACK${q}`,'warn');sendA(q)}}}
+  function onAck(q){
+    if(S.proto==='GBN'){if(q<S.base){log(`S: duplicate ACK${q} ignored`);return}for(let i=S.base;i<=q;i++)S.snd[i]=2;S.base=q+1;S.gt=S.base===S.next?null:S.now;log(`S: ACK${q} (cumulative) → window base F${S.base}`,'ok')}
+    else{if(S.snd[q]!==1)return;S.snd[q]=2;delete S.timers[q];while(S.snd[S.base]===2)S.base++;log(`S: ACK${q} → F${q} done, base F${S.base}`,'ok')}}
+  function step(dt){S.now+=dt;
+    if(S.next<S.total&&S.next<S.base+S.N&&S.now-S.lastSend>=GAP){sendF(S.next,false);S.next++;S.lastSend=S.now}
+    for(const p of S.pk){if(p.gone)continue;const f=(S.now-p.t0)/PROP;
+      if(p.lost){if(S.now-p.lostAt>0.9)p.gone=true;continue}
+      if(p.doom&&f>=0.5){p.lost=true;p.lostAt=S.now;p.f=0.5;log(`${p.k==='D'?'F':'ACK'}${p.q} lost in channel`,'bad');continue}
+      if(f>=1){p.gone=true;p.k==='D'?onData(p.q):onAck(p.q)}}
+    S.pk=S.pk.filter(p=>!p.gone);
+    if(S.proto==='GBN'){if(S.gt!==null&&S.now-S.gt>=TO){log(`Timeout on F${S.base} → go back, resend F${S.base}…F${S.next-1}`,'bad');S.gt=S.now;for(let i=S.base;i<S.next;i++)sendF(i,true)}}
+    else for(const q in S.timers)if(S.now-S.timers[q]>=TO){log(`Timeout on F${q} → resend only F${q}`,'bad');sendF(+q,true)}
+    if(S.base>=S.total){running=false;$('#sw-run').textContent='Start';log(`All ${S.total} frames delivered in ${S.now.toFixed(1)} s.`,'ok')}}
+  function stat(){$('#sw-stat').innerHTML=`<span>Frames sent <b>${S.sent}</b></span><span>Retransmissions <b>${S.retx}</b></span><span>ACKs sent <b>${S.acks}</b></span><span>Delivered <b>${S.proto==='GBN'?S.exp:S.rbase}/${S.total}</b></span><span>Time <b>${S.now.toFixed(1)} s</b></span><span>Efficiency <b>${S.sent?Math.round(100*Math.min(S.total,S.sent-S.retx)/S.sent):100}%</b></span>`}
+  function draw(){
+    const {g,w,h}=fitCanvas(cv,320,520),n=S.total,cw=(w-20)/n,bx=Math.min(cw-6,38),X=i=>10+cw*i+cw/2,yS=62,yR=262,y1=yS+bx/2+4,y2=yR-bx/2-4;geo={X,y1,y2};
+    g.clearRect(0,0,w,h);g.font='600 12px "IBM Plex Sans",sans-serif';g.textAlign='left';g.fillStyle=tok('muted');g.fillText('SENDER',10,16);g.fillText('RECEIVER',10,h-8);
+    const win=(a,b,y)=>{if(a>=n)return;b=Math.min(b,n-1);g.strokeStyle=tok('accent');g.lineWidth=2;g.beginPath();g.roundRect(X(a)-cw/2+1,y-bx/2-6,(b-a+1)*cw-2,bx+12,6);g.stroke()};
+    win(S.base,S.base+S.N-1,yS);S.proto==='GBN'?win(S.exp,S.exp,yR):win(S.rbase,S.rbase+S.N-1,yR);
+    g.textAlign='center';g.textBaseline='middle';
+    const box=(i,y,st,kind)=>{const fill=kind==='s'?[tok('panel'),tok('soft'),tok('ok')][st]:[tok('panel'),tok('sig'),tok('ok')][st];
+      g.fillStyle=fill;g.strokeStyle=st===1&&kind==='s'?tok('accent'):tok('line');g.lineWidth=1;g.beginPath();g.roundRect(X(i)-bx/2,y-bx/2,bx,bx,4);g.fill();g.stroke();
+      g.fillStyle=st===2||(st===1&&kind==='r')?'#fff':tok('ink');g.font=`500 ${cw<30?10:12}px "IBM Plex Mono",monospace`;g.fillText(cw<30?i:'F'+i,X(i),y+1)};
+    for(let i=0;i<n;i++){box(i,yS,S.snd[i],'s');box(i,yR,S.rcv[i],'r')}
+    const tm=(i,st)=>{const k=Math.min(1,(S.now-st)/TO);g.fillStyle=tok('grid');g.fillRect(X(i)-bx/2,yS-bx/2-14,bx,4);g.fillStyle=tok('warn');g.fillRect(X(i)-bx/2,yS-bx/2-14,bx*k,4)};
+    if(S.proto==='GBN'){if(S.gt!==null&&S.base<n)tm(S.base,S.gt)}else for(const q in S.timers)tm(+q,S.timers[q]);
+    for(const p of S.pk){const f=p.lost?p.f:Math.min(1,(S.now-p.t0)/PROP),y=p.k==='D'?y1+(y2-y1)*f:y2-(y2-y1)*f,x=X(p.q)+(p.k==='A'?Math.min(8,cw/5):-Math.min(8,cw/5));p.x=x;p.y=y;
+      if(p.lost){g.globalAlpha=Math.max(0,1-(S.now-p.lostAt)/0.9);g.strokeStyle=tok('bad');g.lineWidth=3;g.beginPath();g.moveTo(x-8,y-8);g.lineTo(x+8,y+8);g.moveTo(x+8,y-8);g.lineTo(x-8,y+8);g.stroke();g.globalAlpha=1;continue}
+      g.fillStyle=p.k==='D'?tok('accent'):tok('ok');g.beginPath();g.roundRect(x-13,y-9,26,18,4);g.fill();g.fillStyle='#fff';g.font='600 10px "IBM Plex Mono",monospace';g.fillText((p.k==='D'?'F':'A')+p.q,x,y+1)}
+  }
+  cv.onclick=e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;const p=S.pk.find(p=>!p.lost&&Math.abs(p.x-x)<16&&Math.abs(p.y-y)<14);
+    if(p){p.lost=true;p.lostAt=S.now;p.f=Math.min(1,(S.now-p.t0)/PROP);log(`${p.k==='D'?'F':'ACK'}${p.q} lost (clicked)`,'bad');draw()}};
+  function loop(ts){if(!running||cur!=='exp4'){running=false;$('#sw-run').textContent='Start';return}const dt=Math.min(.05,(ts-last)/1000)*+$('#sw-speed').value;last=ts;step(dt);draw();stat();requestAnimationFrame(loop)}
+  $('#sw-run').onclick=()=>{if(S.base>=S.total)reset();running=!running;$('#sw-run').textContent=running?'Pause':'Start';if(running){last=performance.now();requestAnimationFrame(loop)}};
+  $('#sw-reset').onclick=reset;$$('input[name=sw-p]').forEach(x=>x.onchange=reset);$('#sw-n').onchange=$('#sw-total').onchange=reset;
+  $('#sw-loss').oninput=()=>$('#sw-lv').textContent=$('#sw-loss').value+'%';$('#sw-speed').oninput=()=>$('#sw-sv').textContent=$('#sw-speed').value+'×';
+  redraws.exp4=draw;reset();
+};
+
+/* ---------- P5 OSPF ---------- */
+inits.exp5=()=>{
+  const RT=[[90,70],[320,46],[550,70],[90,280],[320,300],[550,280]].map(([x,y],i)=>({id:i+1,x,y,ifc:0}));
+  const LK=[[1,2,100],[2,3,1000],[1,4,10],[2,5,1000],[3,6,10],[4,5,100],[5,6,1000],[2,6,100]].map(([a,b,bw])=>{const A=RT[a-1],B=RT[b-1];return{a,b,bw,up:true,ia:'Gi0/'+A.ifc++,ib:'Gi0/'+B.ifc++,net:`10.0.${a}${b}.`}});
+  let src=1;const ref=()=>+$('#os-ref').value,cost=bw=>Math.max(1,Math.floor(ref()/bw)),lan=()=>Math.max(1,Math.floor(ref()/1000));
+  $('#os-src').innerHTML=RT.map(r=>`<option value="${r.id}">R${r.id}</option>`).join('');
+  function spf(){const D={},P={},V=new Set();RT.forEach(r=>D[r.id]=Infinity);D[src]=0;
+    while(V.size<RT.length){let u=null;for(const r of RT)if(!V.has(r.id)&&(u===null||D[r.id]<D[u]))u=r.id;if(D[u]===Infinity)break;V.add(u);
+      for(const l of LK){if(!l.up)continue;const v=l.a===u?l.b:l.b===u?l.a:0;if(!v)continue;const nd=D[u]+cost(l.bw);if(nd<D[v]||(nd===D[v]&&P[v]&&u<P[v].u)){D[v]=nd;P[v]={u,l}}}}
+    return{D,P}}
+  const ipOn=(l,r)=>l.net+(l.a===r?1:2), ifOn=(l,r)=>l.a===r?l.ia:l.ib;
+  function draw(){const {D,P}=spf(),tree=new Set(Object.values(P).map(p=>p.l));let s='';
+    LK.forEach((l,i)=>{const A=RT[l.a-1],B=RT[l.b-1],mx=(A.x+B.x)/2,my=(A.y+B.y)/2,on=tree.has(l);
+      s+=`<g data-l="${i}" style="cursor:pointer"><line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="transparent" stroke-width="16"/><line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${!l.up?tok('bad'):on?tok('accent'):tok('line')}" stroke-width="${on?4:2}" ${l.up?'':'stroke-dasharray="6 5"'}/>
+      <rect x="${mx-24}" y="${my-10}" width="48" height="20" rx="4" fill="${tok('panel')}" stroke="${l.up?tok('line'):tok('bad')}"/><text x="${mx}" y="${my+4}" text-anchor="middle" font-size="11" fill="${l.up?tok('ink'):tok('bad')}">${l.up?cost(l.bw):'down'}</text></g>`});
+    RT.forEach(r=>{const me=r.id===src;s+=`<g data-r="${r.id}" style="cursor:pointer"><circle cx="${r.x}" cy="${r.y}" r="23" fill="${me?tok('accent'):tok('panel')}" stroke="${me?tok('accent'):tok('ink')}" stroke-width="1.5"/><text x="${r.x}" y="${r.y+5}" text-anchor="middle" font-size="14" font-weight="600" fill="${me?'#fff':tok('ink')}">R${r.id}</text>
+      <text x="${r.x}" y="${r.y+(r.y>150?40:-30)}" text-anchor="middle" font-size="10.5" fill="${tok('muted')}">192.168.${r.id}.0/24${D[r.id]===Infinity?' · unreachable':me?'':' · '+D[r.id]}</text></g>`});
+    $('#ospf').innerHTML=s;
+    $$('#ospf [data-l]').forEach(g=>g.onclick=()=>{LK[+g.dataset.l].up^=1;draw()});
+    $$('#ospf [data-r]').forEach(g=>g.onclick=()=>{src=+g.dataset.r;$('#os-src').value=src;draw()});
+    $('#os-links').innerHTML='<thead><tr><th>Link</th><th>Bandwidth</th><th>Cost</th><th>Up</th></tr></thead><tbody>'+LK.map((l,i)=>`<tr><td>R${l.a}–R${l.b}</td><td><select data-bw="${i}" aria-label="Bandwidth R${l.a}-R${l.b}">${[10,100,1000].map(b=>`<option value="${b}" ${b===l.bw?'selected':''}>${b===1000?'1 Gbps':b+' Mbps'}</option>`).join('')}</select></td><td>${cost(l.bw)}</td><td><input type="checkbox" data-up="${i}" ${l.up?'checked':''} aria-label="Link R${l.a}-R${l.b} up"></td></tr>`).join('')+'</tbody>';
+    $$('#os-links [data-bw]').forEach(x=>x.onchange=()=>{LK[+x.dataset.bw].bw=+x.value;draw()});$$('#os-links [data-up]').forEach(x=>x.onchange=()=>{LK[+x.dataset.up].up=x.checked;draw()});
+    const first=d=>{let v=d;while(P[v].u!==src)v=P[v].u;return P[v].l};
+    const C=[`C    192.168.${src}.0/24 is directly connected, Gi1/0`,...LK.filter(l=>l.up&&(l.a===src||l.b===src)).map(l=>`C    ${l.net}0/30 is directly connected, ${ifOn(l,src)}`)];
+    const O=RT.filter(r=>r.id!==src).map(r=>{if(D[r.id]===Infinity)return`     192.168.${r.id}.0/24 — no route (unreachable)`;const l=first(r.id),nh=l.a===src?l.b:l.a;return`O    192.168.${r.id}.0/24 [110/${D[r.id]+lan()}] via ${ipOn(l,nh)}, 00:0${r.id}:1${r.id}, ${ifOn(l,src)}`});
+    $('#os-rt-h').textContent=`R${src}# show ip route`;$('#os-rt').textContent=`Codes: C - connected, O - OSPF\n\n${C.join('\n')}\n${O.join('\n')}`;
+    $('#os-nb-h').textContent=`R${src}# show ip ospf neighbor`;
+    const nb=LK.filter(l=>l.up&&(l.a===src||l.b===src));$('#os-nb').textContent=`Neighbor ID     Pri   State      Dead Time   Address         Interface\n`+(nb.length?nb.map(l=>{const o=l.a===src?l.b:l.a;return`${(o+'.'+o+'.'+o+'.'+o).padEnd(16)}0     FULL/  -   00:00:3${o}    ${ipOn(l,o).padEnd(16)}${ifOn(l,src)}`}).join('\n'):'(none — all links down)');
+    $('#os-cfg').textContent=`R${src}(config)# router ospf 1\nR${src}(config-router)# router-id ${src}.${src}.${src}.${src}\nR${src}(config-router)# auto-cost reference-bandwidth ${ref()}\nR${src}(config-router)# network 192.168.${src}.0 0.0.0.255 area 0\n${LK.filter(l=>l.a===src||l.b===src).map(l=>`R${src}(config-router)# network ${l.net}0 0.0.0.3 area 0`).join('\n')}\nR${src}(config-router)# passive-interface Gi1/0`;
+  }
+  $('#os-src').onchange=e=>{src=+e.target.value;draw()};$('#os-ref').onchange=draw;redraws.exp5=draw;
+};
+
+/* ---------- P6 TCP sockets ---------- */
+inits.exp6=()=>{
+  const C='192.168.1.10',S='192.168.1.11',CP=50512,SP=5000;let rows=[];
+  const app=()=>$('#tc-app').value;
+  $('#tc-app').onchange=()=>{$$('#exp6 [data-app]').forEach(x=>x.hidden=x.dataset.app!==app());run()};
+  function calc(){const a=+$('#tc-a').value,b=+$('#tc-b').value,o=$('#tc-op').value;if((o==='/'||o==='%')&&b===0)return['ERROR: divide by zero',`${a} ${o} ${b}`];
+    const r={'+':a+b,'-':a-b,'*':a*b,'/':a/b,'%':a%b}[o];return['= '+(Number.isInteger(r)?r:r.toFixed(4)),`${a} ${o} ${b}`]}
+  function trig(){const f=$('#tc-fn').value,d=+$('#tc-deg').value,x=d*Math.PI/180;if(f==='tan'&&Math.abs(Math.cos(x))<1e-12)return['= undefined',`tan ${d}`];
+    const r=Math[f](x);return['= '+(Math.abs(r)<1e-12?0:r).toFixed(4),`${f} ${d}`]}
+  function run(){rows=[];let cs=0,ss=0,t=0;
+    const push=(fromC,flags,len,note,prim='',payload='')=>{const seq=fromC?cs:ss,ack=fromC?ss:cs;t+=0.00042+len*8/1e8;
+      const fl=flags.join(', ');rows.push({fromC,t,src:fromC?C:S,dst:fromC?S:C,proto:'TCP',len:(flags.includes('SYN')?66:54)+len,
+        info:`${fromC?CP:SP} → ${fromC?SP:CP} [${fl}] Seq=${seq}${flags.includes('ACK')?' Ack='+ack:''} Win=64240 Len=${len}${flags.includes('SYN')?' MSS=1460':''}`,label:`${fl}${len?' · '+len+' B':''}`,seq,ack,note,prim,payload});
+      const adv=len+(flags.includes('SYN')||flags.includes('FIN')?1:0);fromC?cs+=adv:ss+=adv};
+    push(true,['SYN'],0,'Client opens the connection (active open).','connect()');
+    push(false,['SYN','ACK'],0,'Server, blocked in accept(), answers with its own SYN.','accept()');
+    push(true,['ACK'],0,'Handshake complete. connect() and accept() both return.');
+    const msg=(fromC,txt,note,prim)=>push(fromC,['PSH','ACK'],new TextEncoder().encode(txt).length,note,prim,txt);
+    if(app()==='hello'){const m=$('#tc-msg').value||'Hello';msg(true,m,'Client greets the server.','send()');push(false,['ACK'],0,'Server acknowledges the bytes.','recv()');msg(false,'Hello from server','Server replies.','send()');push(true,['ACK'],0,'Client acknowledges.','recv()')}
+    else if(app()==='file'){const size=+$('#tc-file').value,name=$('#tc-file').selectedOptions[0].text.split(' · ')[0],hdr=`FILE ${name} ${size}\n`;msg(true,hdr,'Client sends a header with file name and size.','send()');
+      let left=size,k=0;while(left>0){const n=Math.min(1460,left);left-=n;k++;push(true,left?['ACK']:['PSH','ACK'],n,`File data, segment ${k} (${n} bytes of ${name}).`,k===1?'send() loop':'');if(k%2===0||!left)push(false,['ACK'],0,'Delayed ACK: one ACK covers two segments.')}
+      msg(false,`OK ${size} bytes received`,'Server confirms the file was written to disk.','send()');push(true,['ACK'],0,'')}
+    else{const[res,q]=app()==='calc'?calc():trig();msg(true,q,'Client sends the expression.','send()');msg(false,res,'Server evaluates it and replies (this segment also ACKs the request).','send()');push(true,['ACK'],0,'Client acknowledges the result.','recv()')}
+    push(true,['FIN','ACK'],0,'Client finished: active close.','close()');push(false,['ACK'],0,'Server acknowledges the FIN; recv() returns 0.');push(false,['FIN','ACK'],0,'Server closes its side.','close()');push(true,['ACK'],0,'Final ACK. Client enters TIME_WAIT (2 × MSL).');
+    render()}
+  function render(sel=-1){const rh=34,top=42,W=600,h=top+rows.length*rh+20,cx=150,sx=450;
+    let s=`<svg viewBox="0 0 ${W} ${h}" style="width:100%;min-width:440px;display:block"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="${tok('accent')}"/></marker><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="${tok('sig')}"/></marker></defs>
+      <text x="${cx}" y="18" text-anchor="middle" font-size="12" font-weight="600" fill="${tok('ink')}">Client ${C}:${CP}</text><text x="${sx}" y="18" text-anchor="middle" font-size="12" font-weight="600" fill="${tok('ink')}">Server ${S}:${SP}</text>
+      <line x1="${cx}" y1="28" x2="${cx}" y2="${h-6}" stroke="${tok('line')}" stroke-width="2"/><line x1="${sx}" y1="28" x2="${sx}" y2="${h-6}" stroke="${tok('line')}" stroke-width="2"/>`;
+    rows.forEach((r,i)=>{const y=top+i*rh,x1=r.fromC?cx:sx,x2=r.fromC?sx:cx,col=r.fromC?tok('accent'):tok('sig');
+      s+=`<g data-i="${i}" style="cursor:pointer"><rect x="${cx}" y="${y-6}" width="${sx-cx}" height="${rh}" fill="${i===sel?tok('soft'):'transparent'}"/><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y+rh-12}" stroke="${col}" stroke-width="1.6" marker-end="url(#${r.fromC?'ah':'ah2'})"/>
+        <text x="300" y="${y+rh/2-4}" text-anchor="middle" font-size="11" fill="${tok('ink')}" paint-order="stroke" stroke="${i===sel?tok('soft'):tok('panel')}" stroke-width="4">${esc(r.label)}</text>
+        ${r.prim?`<text x="${r.fromC?cx-8:sx+8}" y="${y+4}" text-anchor="${r.fromC?'end':'start'}" font-size="11" fill="${tok('muted')}">${r.prim}</text>`:''}</g>`});
+    $('#tc-ladder').innerHTML=s+'</svg>';$('#tc-table').innerHTML=traceTable(rows);
+    $$('#tc-table tbody tr')[sel]?.classList.add('sel');
+    const pick=i=>{const r=rows[i];$('#tc-detail').textContent=`Frame ${i+1}: ${r.len} bytes on wire\n${r.src}:${r.fromC?CP:SP} → ${r.dst}:${r.fromC?SP:CP}\nSeq=${r.seq}  Ack=${r.ack}\n${r.prim?'Socket call: '+r.prim+'\n':''}${r.note}${r.payload?`\nPayload: "${r.payload.trim()}"`:''}`;render(i)};
+    $$('#tc-ladder [data-i],#tc-table tbody tr').forEach(e=>e.onclick=()=>pick(+e.dataset.i))}
+  $('#tc-run').onclick=run;redraws.exp6=()=>render();run();
+};
+
+/* ---------- P7 UDP ---------- */
+inits.exp7=()=>{
+  function run(){const[kind,name,size]=$('#ud-file').value.split('|'),pl=+$('#ud-pl').value,p=+$('#ud-loss').value/100,rt=$('#ud-rt').checked,n=Math.ceil(+size/pl);
+    const st=Array.from({length:n},()=>Math.random()<p?(rt?'rt':'l'):'');const lost=st.filter(s=>s==='l').length,rec=st.filter(s=>s==='rt').length;
+    $('#ud-grid').innerHTML=st.map(s=>`<span class="${s}"></span>`).join('');
+    $('#ud-stat').innerHTML=`<span>File <b>${name}</b></span><span>Size <b>${(+size).toLocaleString('en-IN')} B</b></span><span>Datagrams <b>${n}</b></span><span>Lost <b>${lost+rec}</b></span><span>Retransmitted <b>${rec}</b></span><span>Extra packets (ACKs) <b>${rt?n+rec:0}</b></span><span>Received <b>${n-lost}/${n}</b></span>`;
+    const v=lost===0?['ok',rec?`File intact: ${rec} lost datagram(s) recovered by application-level retransmission, at the cost of ${n+rec} extra packets.`:'File intact: every datagram arrived. UDP gave no guarantee of this.']:
+      kind==='script'||kind==='text'?['bad',`${name} is corrupted: ${lost} gap(s) of ${pl} bytes. A ${kind} file is useless with missing bytes; checksum comparison fails.`]:
+      ['warn',`${name} still plays with ${lost} glitch(es) (${(lost/n*100).toFixed(1)}% missing). Media tolerates loss, which is why real-time audio/video uses UDP.`];
+    $('#ud-verdict').innerHTML=`<div class="verdict ${v[0]}">${v[1]}</div>`;
+    let t=0;const rows=[];for(let i=0;i<Math.min(n,14);i++){t+=0.00008+(pl+46)*8/1e8;if(st[i]==='l')continue;const len=Math.min(pl,+size-i*pl)+4;rows.push({t,src:'192.168.1.10',dst:'192.168.1.11',proto:'UDP',len:len+42,info:`50000 → 6000 Len=${len}   [app seq=${i}]`});
+      if(rt){t+=0.0003;rows.push({t,src:'192.168.1.11',dst:'192.168.1.10',proto:'UDP',len:46,info:`6000 → 50000 Len=4   [app ACK ${i}]`})}}
+    $('#ud-table').innerHTML=`<p class="lab" style="margin:0 0 6px">Capture (first ${rows.length} packets${st.slice(0,14).includes('l')?', lost datagrams never appear':''})</p>`+traceTable(rows)}
+  $('#ud-run').onclick=run;['#ud-file','#ud-pl','#ud-rt'].forEach(s=>$(s).onchange=run);
+  $('#ud-loss').oninput=()=>{$('#ud-lv').textContent=$('#ud-loss').value+'%'};$('#ud-loss').onchange=run;run();
+};
+
+/* ---------- P8 packet builder ---------- */
+inits.exp8=()=>{
+  const FL=['URG','ACK','PSH','RST','SYN','FIN'],BIT={URG:32,ACK:16,PSH:8,RST:4,SYN:2,FIN:1};
+  $('#pb-flags').innerHTML='<span class="lab" style="align-self:center">TCP flags</span>'+FL.map(f=>`<label class="chk"><input type="checkbox" id="pf-${f}" ${f==='ACK'||f==='PSH'?'checked':''}> ${f}</label>`).join('');
+  const sum=b=>{let s=0;for(let i=0;i<b.length;i+=2)s+=(b[i]<<8)+(b[i+1]||0);while(s>>>16)s=(s&0xffff)+(s>>>16);return(~s)&0xffff};
+  const u16=v=>[(v>>8)&255,v&255],u32=v=>[(v>>>24)&255,(v>>>16)&255,(v>>>8)&255,v&255],hx=(v,n)=>'0x'+v.toString(16).padStart(n,'0');
+  const mac=s=>{const p=s.trim().split(/[:-]/);return p.length===6&&p.every(x=>/^[0-9a-f]{2}$/i.test(x))?p.map(x=>parseInt(x,16)):null};
+  const ip=s=>{const p=s.trim().split('.');return p.length===4&&p.every(x=>/^\d{1,3}$/.test(x)&&+x<256)?p.map(Number):null};
+  let F=[];
+  function build(){const sm=mac($('#pb-smac').value),dm=mac($('#pb-dmac').value),si=ip($('#pb-sip').value),di=ip($('#pb-dip').value);
+    const bad=[!dm&&'destination MAC',!sm&&'source MAC',!si&&'source IP',!di&&'destination IP'].filter(Boolean);
+    $('#pb-err').hidden=!bad.length;$('#pb-err').textContent=bad.length?`Check the ${bad.join(', ')} (MAC like 00:1a:2b:3c:4d:10, IP like 192.168.1.10).`:'';if(bad.length)return;
+    const tcp=$('#pb-proto').value==='6';$$('#exp8 [data-tcp]').forEach(x=>x.hidden=!tcp);
+    const ttl=Math.min(255,Math.max(1,+$('#pb-ttl').value||64)),sp=(+$('#pb-sp').value)&0xffff,dp=(+$('#pb-dp').value)&0xffff,seq=(+$('#pb-seq').value)>>>0;
+    const data=[...new TextEncoder().encode($('#pb-data').value)],fl=FL.reduce((a,f)=>a|($('#pf-'+f).checked?BIT[f]:0),0);
+    const l4len=(tcp?20:8)+data.length,tot=20+l4len,pseudo=[...si,...di,0,tcp?6:17,...u16(l4len)];
+    const iph=[0x45,0,...u16(tot),...u16(0x1c46),0x40,0,ttl,tcp?6:17,0,0,...si,...di];const ic=sum(iph);iph[10]=ic>>8;iph[11]=ic&255;
+    let l4=tcp?[...u16(sp),...u16(dp),...u32(seq),...u32(fl&BIT.ACK?1:0),0x50,fl,...u16(64240),0,0,0,0]:[...u16(sp),...u16(dp),...u16(l4len),0,0];
+    const lc=sum([...pseudo,...l4,...data])||0xffff,co=tcp?16:6;l4[co]=lc>>8;l4[co+1]=lc&255;
+    F=[];const B=[];const put=(ly,name,bytes)=>{F.push({ly,name,off:B.length,len:bytes.length});B.push(...bytes)};
+    const fmac=b=>b.map(x=>x.toString(16).padStart(2,'0')).join(':'),fip=b=>b.join('.');
+    put('Ethernet II',`Destination: ${fmac(dm)}`,dm);put('Ethernet II',`Source: ${fmac(sm)}`,sm);put('Ethernet II','Type: IPv4 (0x0800)',[8,0]);
+    const I='Internet Protocol Version 4, Src: '+fip(si)+', Dst: '+fip(di);
+    put(I,'0100 .... = Version: 4 | .... 0101 = Header Length: 20 bytes (5)',[0x45]);put(I,'Differentiated Services Field: 0x00',[0]);put(I,`Total Length: ${tot}`,u16(tot));
+    put(I,'Identification: 0x1c46 (7238)',u16(0x1c46));put(I,"Flags: 0x40, Don't fragment | Fragment Offset: 0",[0x40,0]);put(I,`Time to Live: ${ttl}`,[ttl]);
+    put(I,`Protocol: ${tcp?'TCP (6)':'UDP (17)'}`,[tcp?6:17]);put(I,`Header Checksum: ${hx(ic,4)} [correct]`,[ic>>8,ic&255]);put(I,`Source Address: ${fip(si)}`,si);put(I,`Destination Address: ${fip(di)}`,di);
+    if(tcp){const T=`Transmission Control Protocol, Src Port: ${sp}, Dst Port: ${dp}, Seq: ${seq}, Len: ${data.length}`,fs=FL.filter(f=>fl&BIT[f]);
+      put(T,`Source Port: ${sp}`,u16(sp));put(T,`Destination Port: ${dp}`,u16(dp));put(T,`Sequence Number (raw): ${seq}`,u32(seq));put(T,`Acknowledgment Number (raw): ${fl&BIT.ACK?1:0}`,l4.slice(8,12));
+      put(T,'0101 .... = Header Length: 20 bytes (5)',[0x50]);put(T,`Flags: ${hx(fl,3)} (${fs.join(', ')||'none'})`,[fl]);put(T,'Window: 64240',u16(64240));put(T,`Checksum: ${hx(lc,4)} [correct, incl. pseudo-header]`,[lc>>8,lc&255]);put(T,'Urgent Pointer: 0',[0,0])}
+    else{const U=`User Datagram Protocol, Src Port: ${sp}, Dst Port: ${dp}`;put(U,`Source Port: ${sp}`,u16(sp));put(U,`Destination Port: ${dp}`,u16(dp));put(U,`Length: ${l4len}`,u16(l4len));put(U,`Checksum: ${hx(lc,4)} [correct, incl. pseudo-header]`,[lc>>8,lc&255])}
+    if(data.length)put(`Data (${data.length} bytes)`,`Data: ${esc($('#pb-data').value)}`,data);
+    if(B.length<60)put('Ethernet trailer',`Padding: ${60-B.length} bytes (frame below 64-byte minimum)`,Array(60-B.length).fill(0));
+    const fcs=crc32(B);put('Ethernet trailer',`Frame check sequence: ${hx(fcs,8)} [CRC-32, computed by NIC]`,[0,8,16,24].map(s=>(fcs>>>s)&255));
+    let ly='',t='';F.forEach((f,i)=>{if(f.ly!==ly){ly=f.ly;t+=`<div class="ly">▾ ${ly}</div>`}t+=`<div class="fd" data-f="${i}">${f.name} <span style="color:var(--muted)">[${f.off}${f.len>1?'–'+(f.off+f.len-1):''}]</span></div>`});
+    $('#pb-tree').innerHTML=`<div class="ly" style="margin:0">Frame: ${B.length} bytes on wire (${B.length*8} bits)</div>`+t;
+    let h='';for(let r=0;r<B.length;r+=16){const row=B.slice(r,r+16);h+=`<div><span class="off">${r.toString(16).padStart(4,'0')}</span>${row.map((b,j)=>`<span class="b" data-b="${r+j}">${b.toString(16).padStart(2,'0')}</span>`).join(' ')}${'   '.repeat(16-row.length)}<span class="asc">${row.map(b=>b>31&&b<127?esc(String.fromCharCode(b)):'.').join('')}</span></div>`}
+    $('#pb-hex').innerHTML=h}
+  const hl=i=>{$$('#exp8 .hl').forEach(e=>e.classList.remove('hl'));if(i<0)return;const f=F[i];$(`#pb-tree [data-f="${i}"]`).classList.add('hl');for(let b=f.off;b<f.off+f.len;b++)$(`#pb-hex [data-b="${b}"]`)?.classList.add('hl')};
+  $('#pb-tree').onmouseover=e=>{const d=e.target.closest('[data-f]');hl(d?+d.dataset.f:-1)};
+  $('#pb-hex').onmouseover=e=>{const d=e.target.closest('[data-b]');hl(d?F.findIndex(f=>+d.dataset.b>=f.off&&+d.dataset.b<f.off+f.len):-1)};
+  $('#exp8 .bench').oninput=build;$('#exp8 .bench').onchange=build;build();
+};
+
+/* ---------- P9 HTTP ---------- */
+inits.exp9=()=>{
+  const V=[['1.0','HTTP/1.0 · new connection per object'],['1.1','HTTP/1.1 · persistent'],['1.1p','HTTP/1.1 pipelined ("1.2")'],['2','HTTP/2 · multiplexed']];
+  function plan(v,N,R,big){const tx=12,sz=[tx,...Array.from({length:N},(_,i)=>i===0&&big?tx*6:tx)],nm=['index.html',...sz.slice(1).map((_,i)=>`img${i+1}.jpg`)],bars=[];
+    if(v==='1.0'){let t=0;sz.forEach((s,i)=>{bars.push({l:nm[i],c:[t,t+R],r:[t+R,t+2*R+s]});t+=2*R+s});return bars}
+    bars.push({l:nm[0],c:[0,R],r:[R,2*R+sz[0]]});const t=2*R+sz[0],rest=sz.slice(1);
+    if(v==='1.1'){let u=t;rest.forEach((s,i)=>{bars.push({l:nm[i+1],r:[u,u+R+s]});u+=R+s})}
+    else if(v==='1.1p'){let u=t+R;rest.forEach((s,i)=>{u+=s;bars.push({l:nm[i+1],r:[t,u]})})}
+    else{const rem=rest.slice(),fin=Array(rest.length);let u=t+R,act=rest.map((_,i)=>i);while(act.length){const m=Math.min(...act.map(i=>rem[i])),k=act.length;u+=m*k;act.forEach(i=>rem[i]-=m);act=act.filter(i=>{if(rem[i]<=1e-9){fin[i]=u;return false}return true})}
+      rest.forEach((_,i)=>bars.push({l:nm[i+1],r:[t,fin[i]]}))}
+    return bars}
+  function wf(){const N=+$('#ht-n').value,R=+$('#ht-rtt').value,big=$('#ht-big').checked;$('#ht-nv').textContent=N;$('#ht-rv').textContent=R+' ms';
+    const P=V.map(([v,l])=>({v,l,b:plan(v,N,R,big)})),end=b=>Math.max(...b.map(x=>x.r[1])),maxT=Math.max(...P.map(p=>end(p.b)));
+    const W=760,L=130,rh=11,gap=34;let y=10,s='';const sc=x=>L+(W-L-60)*x/maxT;
+    const tick=Math.pow(10,Math.floor(Math.log10(maxT/4))),step=[1,2,5].map(k=>k*tick).find(k=>maxT/k<=6)||tick*10;
+    P.forEach(p=>{const tot=end(p.b);s+=`<text x="0" y="${y+12}" font-size="12.5" font-weight="600" fill="${tok('ink')}">${p.l}</text><text x="${W}" y="${y+12}" text-anchor="end" font-size="12.5" font-weight="600" fill="${tok('accent')}">${Math.round(tot)} ms</text>`;y+=22;
+      p.b.forEach(b=>{s+=`<text x="${L-8}" y="${y+9}" text-anchor="end" font-size="10.5" fill="${tok('muted')}">${b.l}</text>`;if(b.c)s+=`<rect x="${sc(b.c[0])}" y="${y}" width="${Math.max(1,sc(b.c[1])-sc(b.c[0]))}" height="${rh}" rx="2" fill="${tok('sig')}"/>`;
+        s+=`<rect x="${sc(b.r[0])}" y="${y}" width="${Math.max(1,sc(b.r[1])-sc(b.r[0]))}" height="${rh}" rx="2" fill="${tok('accent')}"/>`;y+=rh+3});y+=gap-14});
+    let ax='';for(let t=0;t<=maxT;t+=step)ax+=`<line x1="${sc(t)}" y1="0" x2="${sc(t)}" y2="${y}" stroke="${tok('grid')}"/><text x="${sc(t)}" y="${y+14}" text-anchor="middle" font-size="10.5" fill="${tok('muted')}">${t} ms</text>`;
+    $('#ht-wf').innerHTML=`<div class="legend" style="margin-bottom:8px"><span><i style="background:var(--sig)"></i>TCP handshake (1 RTT)</span><span><i style="background:var(--accent)"></i>Request → last byte of response</span></div><svg viewBox="0 -4 ${W+10} ${y+24}" style="width:100%;min-width:560px;display:block">${ax}${s}</svg>`}
+  const REQ=[
+    ['GET','/index.html','',200,'OK','text/html','<!doctype html><html><head><title>CN Lab</title>…','Resource found and returned.'],
+    ['GET','/index.html','If-Modified-Since: Mon, 02 Nov 2026 04:00:00 GMT',304,'Not Modified','','','Browser cache is still valid; no body is sent.'],
+    ['GET','/notes/unit4.pdf','Range: bytes=0-1023',206,'Partial Content','application/pdf','%PDF-1.7 … (1024 bytes)','Byte ranges are an HTTP/1.1 feature. A 1.0 server ignores Range and returns 200 with the whole file.'],
+    ['POST','/api/feedback','Content-Type: application/json',201,'Created','application/json','{"id":42,"status":"saved"}','Server created a new resource.'],
+    ['GET','/old-timetable','',301,'Moved Permanently','text/html','','Location header tells Firefox where to go; it requests that URL automatically.'],
+    ['GET','/marks/ty-cs.xlsx','',401,'Unauthorized','text/html','<h1>401 Login required</h1>','Credentials are missing; WWW-Authenticate asks for them.'],
+    ['GET','/admin/','',403,'Forbidden','text/html','<h1>403 Forbidden</h1>','Server understood the request but refuses access.'],
+    ['GET','/missing.html','',404,'Not Found','text/html','<h1>404 Not Found</h1>','No resource at this path.'],
+    ['DELETE','/index.html','',405,'Method Not Allowed','text/html','<h1>405 Method Not Allowed</h1>','Allow header lists permitted methods.'],
+    ['GET','/cgi-bin/report','',500,'Internal Server Error','text/html','<h1>500 Internal Server Error</h1>','Server-side code crashed.'],
+    ['GET','/live/feed','',503,'Service Unavailable','text/html','<h1>503 Service Unavailable</h1>','Server overloaded; Retry-After suggests when to try again.']];
+  $('#ht-req').innerHTML=REQ.map((r,i)=>`<option value="${i}">${r[0]} ${r[1]}${r[2]?' ('+r[2].split(':')[0]+')':''} → ${r[3]}</option>`).join('');
+  function rr(){const v=$('input[name=ht-v]:checked').value;let[m,p,hd,code,txt,ct,body,why]=REQ[+$('#ht-req').value];
+    if(v==='1.0'&&code===206){code=200;txt='OK';body='%PDF-1.7 … (entire file)'}
+    const len=body.length,UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0',date='Date: Mon, 02 Nov 2026 05:12:09 GMT';
+    const xh=code===301?'\nLocation: http://lab.vit.local/timetable':code===401?'\nWWW-Authenticate: Basic realm="VIT Lab"':code===405?'\nAllow: GET, HEAD, POST':code===503?'\nRetry-After: 120':code===206?'\nContent-Range: bytes 0-1023/88412':'';
+    if(v==='2'){$('#ht-q').textContent=`HEADERS frame  stream=1  flags=END_HEADERS${m==='GET'||m==='DELETE'?' | END_STREAM':''}\n  :method: ${m}\n  :scheme: https\n  :authority: lab.vit.local\n  :path: ${p}\n  user-agent: ${UA}${hd?'\n  '+hd.toLowerCase().replace(/^([^:]+):/,'$1:'):''}${m==='POST'?'\nDATA frame  stream=1  flags=END_STREAM\n  {"rating":5}':''}`;
+      $('#ht-r').textContent=`HEADERS frame  stream=1  flags=END_HEADERS${len?'':' | END_STREAM'}\n  :status: ${code}\n  ${date.toLowerCase().replace('date:','date:')}\n  server: VITLab/2.0${ct?'\n  content-type: '+ct:''}${xh.toLowerCase()}\n  content-length: ${len}${len?`\nDATA frame  stream=1  flags=END_STREAM\n  ${body}`:''}`}
+    else{const q=`${m} ${p} HTTP/${v}${v==='1.1'?'\nHost: lab.vit.local':''}\nUser-Agent: ${UA}\nAccept: text/html,*/*${hd?'\n'+hd:''}${v==='1.1'?'\nConnection: keep-alive':''}${m==='POST'?'\nContent-Length: 12\n\n{"rating":5}':'\n'}`;
+      $('#ht-q').textContent=q;$('#ht-r').textContent=`HTTP/${v} ${code} ${txt}\n${date}\nServer: VITLab/${v}${ct?'\nContent-Type: '+ct:''}${xh}\nContent-Length: ${len}${v==='1.1'?'\nConnection: keep-alive\nKeep-Alive: timeout=5, max=100':'\nConnection: close'}\n${len?'\n'+body:''}`}
+    const cls=code<300?'2xx success':code<400?'3xx redirection':code<500?'4xx client error':'5xx server error';
+    $('#ht-why').innerHTML=`<b>${code} ${txt}</b> · ${cls}. ${esc(why)}${v==='2'?' HTTP/2 sends no reason phrase and encodes headers with HPACK.':''}`}
+  ['#ht-n','#ht-rtt'].forEach(s=>$(s).oninput=wf);$('#ht-big').onchange=wf;$('#ht-req').onchange=rr;$$('input[name=ht-v]').forEach(x=>x.onchange=rr);
+  redraws.exp9=wf;rr();
+};
+
+addEventListener('hashchange',show);show();
+</script>
+
+</body>
+</html>

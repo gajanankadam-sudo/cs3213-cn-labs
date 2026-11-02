@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>CN Hands-on Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: lab manual. Practical index on the left; each practical reads spec → starter code → test-and-check, top to bottom. Fixed practical index on the left, one experiment "bench" at a time on the right; instrument-panel controls above each simulation. */
+:root{
+  --bg:#F2F4F6; --panel:#FFFFFF; --ink:#15212C; --muted:#5B6873; --line:#D6DDE3; --grid:#E6EBEF;
+  --accent:#1B5BC9; --soft:#E7EEF9; --sig:#B86200; --ok:#1C8448; --bad:#C2352C; --warn:#A86E12;
+  --v10:#1B5BC9; --v20:#B86200;
+  --f-disp:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1419; --panel:#151D24; --ink:#E2E8EE; --muted:#93A1AC; --line:#2A3540; --grid:#1E2830;
+  --accent:#74A3FF; --soft:#1A2739; --sig:#FFB04A; --ok:#4FC283; --bad:#F06A60; --warn:#E3AE4F;
+  --v10:#74A3FF; --v20:#FFB04A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1419; --panel:#151D24; --ink:#E2E8EE; --muted:#93A1AC; --line:#2A3540; --grid:#1E2830;
+  --accent:#74A3FF; --soft:#1A2739; --sig:#FFB04A; --ok:#4FC283; --bad:#F06A60; --warn:#E3AE4F;
+  --v10:#74A3FF; --v20:#FFB04A; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body)}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{border-bottom:1px solid var(--line);background:var(--panel)}
+header.top .wrap{padding-block:18px;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
+header h1{font:800 clamp(24px,3.4vw,34px)/1.05 var(--f-disp);font-stretch:80%;letter-spacing:-.01em;margin:0}
+header .meta{font:500 12px var(--f-mono);color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.shell{display:grid;grid-template-columns:250px minmax(0,1fr);gap:28px;padding-block:24px 60px}
+nav.side{position:sticky;top:16px;align-self:start;display:flex;flex-direction:column;gap:2px}
+nav.side .lbl{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px 10px}
+nav.side a{display:grid;grid-template-columns:30px 1fr;gap:4px;padding:8px 10px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:14px;line-height:1.3}
+nav.side a b{font:600 13px var(--f-mono);color:var(--muted)}
+nav.side a:hover{background:var(--soft)}
+nav.side a.on{background:var(--accent);color:#fff}
+nav.side a.on b{color:#fff;opacity:.8}
+nav.side a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:860px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:16px}
+  nav.side{position:static;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  nav.side .lbl{grid-column:1/-1;margin:0}
+  nav.side a{grid-template-columns:1fr;border:1px solid var(--line);background:var(--panel);font-size:12.5px;padding:7px 8px}
+  nav.side a span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+}
+main{min-width:0}
+.exp{display:flex;flex-direction:column;gap:18px;min-width:0}
+.eyebrow{font:600 12px var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--accent)}
+.exp h2{font:750 clamp(26px,3vw,36px)/1.08 var(--f-disp);font-stretch:85%;margin:4px 0 8px;text-wrap:balance}
+.aim{margin:0;max-width:72ch;color:var(--ink)}
+.aim b{font-weight:600}
+details{background:var(--panel);border:1px solid var(--line);border-radius:8px}
+details>summary{cursor:pointer;padding:10px 14px;font-weight:600;list-style:none;display:flex;justify-content:space-between}
+details>summary::after{content:"+";font-family:var(--f-mono);color:var(--muted)}
+details[open]>summary::after{content:"−"}
+details>div,details>ol{padding:0 18px 14px;margin:0;max-width:78ch}
+details li{margin:4px 0}
+.bench{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.ctrls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f>span,.lab{font:600 11px var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+input[type=text],input[type=number],select{font:14px var(--f-mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0}
+input[type=range]{accent-color:var(--accent);width:150px}
+input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;white-space:nowrap}
+.chks{display:flex;flex-wrap:wrap;gap:6px 16px}
+button{font:600 14px var(--f-body);border-radius:6px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+button:hover{filter:brightness(1.06)}
+.chip{font:13px var(--f-mono);padding:4px 9px;border-radius:999px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg label{padding:7px 12px;cursor:pointer;font-size:14px;border-right:1px solid var(--line)}
+.seg label:last-child{border-right:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--accent);color:#fff}
+.seg label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:-2px}
+canvas{display:block;max-width:100%}
+.scroll{overflow-x:auto;min-width:0}
+.note{font-size:13px;color:var(--muted);margin:0}
+.mono,pre{font:13px/1.5 var(--f-mono)}
+pre{margin:0;white-space:pre;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.two{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px}
+@media (max-width:980px){.two{grid-template-columns:minmax(0,1fr)}}
+table.t{border-collapse:collapse;font:13px var(--f-mono);width:100%;font-variant-numeric:tabular-nums}
+table.t th{text-align:left;font:600 11px var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--line);padding:6px 8px;white-space:nowrap}
+table.t td{padding:5px 8px;border-bottom:1px solid var(--grid);white-space:nowrap}
+table.pk tbody tr{cursor:pointer}
+table.pk tbody tr:hover,table.pk tbody tr.sel{background:var(--soft)}
+.ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .acc{color:var(--accent)}
+.err{color:var(--bad);font-size:13px;margin:0}
+.stat{display:flex;flex-wrap:wrap;gap:6px 22px;font:13px var(--f-mono)}
+.stat b{font-weight:500;color:var(--ink)} .stat span{color:var(--muted)}
+/* terminal */
+.term{background:#0C1116;color:#D7E0E8;border-radius:8px;border:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+.term pre{background:none;border:0;color:inherit;height:300px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.term .in{display:flex;gap:6px;align-items:center;border-top:1px solid #26313B;padding:8px 12px;font:13px var(--f-mono)}
+.term .in span{color:#7FB2FF;white-space:nowrap}
+.term input{flex:1;background:none;border:0;color:#fff;font:13px var(--f-mono);outline:none;min-width:0}
+.term .o-ok{color:#6FD39A}.term .o-bad{color:#FF8A80}.term .o-cmd{color:#FFFFFF}.term .o-dim{color:#8A98A5}
+.qk{display:flex;flex-wrap:wrap;gap:6px}
+.qk button{font:12px var(--f-mono);padding:4px 9px}
+/* bit cells */
+.cells{display:flex;flex-wrap:wrap;gap:3px}
+.cell{width:34px;text-align:center;font:500 15px var(--f-mono);border:1px solid var(--line);border-radius:4px;padding:5px 0 3px;background:var(--bg);display:flex;flex-direction:column;align-items:center}
+.cell small{font-size:10px;color:var(--muted);line-height:1}
+.cell.p{background:var(--soft);border-color:var(--accent)}
+.cell.r{background:color-mix(in srgb,var(--sig) 18%,var(--panel));border-color:var(--sig)}
+.cell.flip{background:var(--bad);border-color:var(--bad);color:#fff}
+.cell.flip small{color:#fff}
+.cell.fix{background:var(--ok);border-color:var(--ok);color:#fff}
+.cell.fix small{color:#fff}
+button.cell{cursor:pointer;font-weight:500}
+.row{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;align-items:center}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+.verdict{padding:10px 14px;border-radius:6px;font-weight:600;border:1px solid}
+.verdict.ok{background:color-mix(in srgb,var(--ok) 12%,var(--panel));border-color:var(--ok)}
+.verdict.bad{background:color-mix(in srgb,var(--bad) 12%,var(--panel));border-color:var(--bad)}
+.verdict.warn{background:color-mix(in srgb,var(--warn) 14%,var(--panel));border-color:var(--warn)}
+.log{list-style:none;margin:0;padding:8px 12px;height:190px;overflow:auto;font:12.5px/1.6 var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:6px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;border:1px solid var(--line)}
+svg text{font-family:var(--f-mono)}
+.dg{display:grid;grid-template-columns:repeat(auto-fill,8px);gap:2px}
+.dg span{width:8px;height:8px;border-radius:1px;background:var(--ok)}
+.dg span.l{background:var(--bad)} .dg span.rt{background:var(--warn)}
+/* packet builder */
+.tree{font:13px/1.65 var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;overflow-x:auto}
+.tree .ly{font-weight:600;margin-top:4px}
+.tree .fd{padding-left:18px;cursor:default;white-space:nowrap;border-radius:3px}
+.tree .fd.hl,.hex span.hl{background:var(--accent);color:#fff}
+.hex{font:13px/1.7 var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;overflow-x:auto;white-space:nowrap}
+.hex .off{color:var(--muted);margin-right:12px}
+.hex span.b{padding:0 2px;border-radius:2px;cursor:default}
+.hex .asc{color:var(--muted);margin-left:12px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px 14px}
+.grid4 input,.grid4 select{width:100%}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.bench h3{font:700 19px/1.2 var(--f-disp);font-stretch:88%;margin:6px 0 -4px;padding-top:12px;border-top:1px solid var(--line)}
+.bench h3:first-child{border-top:0;padding-top:0}
+.spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 22px}
+.spec>div{min-width:0}.spec p{margin:0 0 8px}.spec ul,.spec ol{margin:0;padding-left:20px}.spec li{margin:3px 0}
+.spec .lab,.col .lab{margin:0 0 4px;display:flex;align-items:center;gap:8px}
+code{font:13px var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+textarea{font:13px/1.5 var(--f-mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%;resize:vertical;min-width:0}
+.code{border:1px solid var(--line);border-radius:8px;overflow:hidden;min-width:0}
+.code .tabs{display:flex;flex-wrap:wrap;gap:2px;align-items:center;background:var(--bg);border-bottom:1px solid var(--line);padding:6px 8px}
+.code .tabs [role=tab]{font:500 13px var(--f-mono);border:0;background:none;padding:6px 10px;border-radius:5px}
+.code .tabs [role=tab][aria-selected=true]{background:var(--panel);color:var(--accent);box-shadow:inset 0 -2px 0 var(--accent)}
+.code .sp{flex:1}
+.code pre.src{border:0;border-radius:0;max-height:420px;overflow:auto;background:var(--panel);margin:0}
+.code .build{margin:0;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);background:var(--bg)}
+button.sm{font:600 12px var(--f-body);padding:4px 10px}
+.col{display:flex;flex-direction:column;gap:8px;min-width:0}
+pre.stdin{max-height:260px;overflow:auto}
+pre.runs{color:var(--muted);font-size:12.5px}
+.muted{color:var(--muted)}
+.kv{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 16px;font:13px var(--f-mono);padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;margin-top:10px}
+.kv span{color:var(--muted)} .kv b{font-weight:500;overflow-wrap:anywhere}
+ul.cl{list-style:none;margin:10px 0 0;padding:0;font:13px/1.8 var(--f-mono)}
+.res{display:flex;flex-direction:column;gap:10px}
+#p7-res{display:flex;flex-direction:column;gap:8px}
+.p7rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;min-width:0;margin:0}
+legend{font-weight:600;padding:0 4px}
+fieldset input{width:100%}
+.prog{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pill{font:600 12px var(--f-mono);width:26px;height:26px;display:inline-grid;place-items:center;border-radius:50%;border:1px solid var(--line);background:var(--bg)}
+.pill.ok{background:var(--ok);border-color:var(--ok);color:#fff}.pill.bad{background:var(--bad);border-color:var(--bad);color:#fff}
+.cmdline{display:flex;gap:8px;align-items:flex-start}.cmdline pre{flex:1;min-width:0}
+.chks.col{flex-direction:column;align-items:flex-start}.chks.col .chk{white-space:normal}
+ol.steps{margin:0;padding-left:22px;max-width:75ch}ol.steps li{margin:6px 0}
+.prose{gap:10px}
+.seed{width:110px}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+  <h1>Computer Networks Hands-on Lab</h1>
+  <span class="meta">CS3213 · TY B.Tech Computer Engineering · VIT Pune · AY 2026–27</span>
+</div></header>
+
+<div class="shell wrap">
+<nav class="side" aria-label="Practicals">
+  <p class="lbl">Write · run · check</p>
+  <a href="#p1"><b>P1</b><span>Line encoding</span></a>
+  <a href="#p2"><b>P2</b><span>LAN commands &amp; VLANs</span></a>
+  <a href="#p3"><b>P3</b><span>Hamming code / CRC</span></a>
+  <a href="#p4"><b>P4</b><span>Sliding window</span></a>
+  <a href="#p5"><b>P5</b><span>OSPFv2 in Packet Tracer</span></a>
+  <a href="#p6"><b>P6</b><span>TCP sockets</span></a>
+  <a href="#p7"><b>P7</b><span>UDP file transfer</span></a>
+  <a href="#p8"><b>P8</b><span>IPv4 header &amp; Wireshark</span></a>
+  <a href="#p9"><b>P9</b><span>HTTP server</span></a>
+  <a href="#how"><b>?</b><span>How this lab works</span></a>
+</nav>
+
+<main>
+<section id="how" class="exp" hidden>
+  <div><span class="eyebrow">Read this first</span><h2>How this lab works</h2>
+  <p class="aim">You write each program in Java or C++ on the lab machine. This page gives you the specification, starter code with <code>TODO</code> markers, and test input. You run your program on that input and paste its output back here to be checked line by line.</p></div>
+  <div class="bench prose">
+    <ol class="steps">
+      <li><b>Copy the starter code</b> for your language into a file with the name shown.</li>
+      <li><b>Complete every TODO.</b> Do not change the input and output format: the checker compares text exactly (extra spaces and blank lines are ignored).</li>
+      <li><b>Copy the test input</b> into <code>input.txt</code>, then run, for example: <code>java LineEncoding &lt; input.txt &gt; output.txt</code> or <code>./line_encoding &lt; input.txt &gt; output.txt</code>.</li>
+      <li><b>Paste <code>output.txt</code></b> into the checker and press <b>Check</b>. Fix and repeat until every line matches.</li>
+      <li><b>Press "New test set"</b> and pass that too. Your faculty may give you a set number to use; type it in the set box.</li>
+    </ol>
+    <p class="note">Socket practicals (P6, P7, P9) need two terminals or two machines on the same network. C++ socket starters use POSIX sockets, so build them on the Linux lab machines. Packet Tracer and Wireshark steps (P2, P5, P8) are checked by pasting the device or capture output.</p>
+  </div>
+</section>
+
+<!-- P1 -->
+<section id="p1" class="exp" hidden>
+  <div><span class="eyebrow">Practical 1 · Unit I · CO1</span><h2>Line encoding program</h2>
+  <p class="aim"><b>Aim:</b> Write a program in Java or C++ to implement Unipolar NRZ, Polar NRZ, NRZ Inverted, Bipolar (AMI), Manchester and Differential Manchester encoding.</p></div>
+  <div class="bench">
+    <h3>Specification</h3>
+    <div class="spec"><div><p class="lab">Input</p><p>One bit string per line, until end of file.</p>
+      <p class="lab">Output</p><p>Six lines per input, in this order. Each bit becomes two half-bit levels written as <code>+</code>, <code>0</code> or <code>-</code>.</p></div>
+      <div><p class="lab">Rules</p><ul>
+        <li>Unipolar NRZ: 1 → <code>++</code>, 0 → <code>00</code></li><li>Polar NRZ-L: 1 → <code>++</code>, 0 → <code>--</code></li>
+        <li>NRZ-I: start at <code>-</code>, invert on every 1</li><li>AMI: 0 → <code>00</code>, 1s alternate starting with <code>++</code></li>
+        <li>Manchester (IEEE 802.3): 0 → <code>+-</code>, 1 → <code>-+</code></li><li>Differential Manchester: previous level <code>+</code>; 0 = transition at bit start, 1 = none; always a mid-bit transition</li></ul></div>
+      <div><p class="lab">Example</p><pre>0110
+UNIPOLAR 00++++00
+NRZ-L --++++--
+NRZ-I --++----
+AMI 00++--00
+MANCHESTER +--+-++-
+DIFF-MANCHESTER -++--+-+</pre></div></div>
+    <h3>Starter code</h3><div data-code="LineEncoding.java|line_encoding.cpp"></div>
+    <h3>Test and check</h3><div data-check="p1" data-run="LineEncoding|line_encoding"></div>
+  </div>
+</section>
+
+<!-- P2 -->
+<section id="p2" class="exp" hidden>
+  <div><span class="eyebrow">Practical 2 · Units I &amp; IV · CO1, CO4</span><h2>Small LAN, network commands and switch VLANs</h2>
+  <p class="aim"><b>Aim:</b> Set up a wired/wireless LAN of 2–4 computers, assign unique IP addresses, use the network commands, and configure switch port VLANs in Cisco Packet Tracer.</p></div>
+  <div class="bench">
+    <h3>Part A · Commands on the lab machines</h3>
+    <p class="note">Run each command on your PC (Windows command shown first, Linux after the slash). Paste the output in the analyser; it extracts the values for your observation table.</p>
+    <div class="scroll"><table class="t"><thead><tr><th>Command</th><th>Run</th><th>Record</th></tr></thead><tbody>
+      <tr><td>ipconfig /all · ip a</td><td>On every PC</td><td>IP, mask, gateway, MAC</td></tr>
+      <tr><td>ping &lt;neighbour IP&gt;</td><td>PC to PC, then to gateway, then 8.8.8.8</td><td>Sent / received / loss, RTT, TTL</td></tr>
+      <tr><td>arp -a · ip neigh</td><td>Before and after the ping</td><td>New dynamic entries</td></tr>
+      <tr><td>tracert · traceroute 8.8.8.8</td><td>Once</td><td>Number of hops, first hop</td></tr>
+      <tr><td>pathping 8.8.8.8 (Windows)</td><td>Once</td><td>Loss per hop</td></tr>
+      <tr><td>nslookup www.vit.edu</td><td>Once</td><td>DNS server, resolved address</td></tr>
+      <tr><td>netstat -an · ss -tuan</td><td>Once</td><td>Listening ports</td></tr>
+      <tr><td>nbtstat -n (Windows)</td><td>Once</td><td>NetBIOS names</td></tr>
+      <tr><td>route print · ip route</td><td>Once</td><td>Default route</td></tr>
+      <tr><td>nmap -sT &lt;neighbour IP&gt;</td><td>Only on lab PCs</td><td>Open ports</td></tr>
+    </tbody></table></div>
+    <label class="f"><span>Paste command output</span><textarea id="p2-in" rows="7" placeholder="Paste the full output of ping, ipconfig, tracert, arp -a or nslookup"></textarea></label>
+    <div class="ctrls"><button class="pri" id="p2-go">Analyse</button><button id="p2-copy">Copy observation table</button></div>
+    <div id="p2-out"></div>
+    <div class="scroll"><table class="t" id="p2-obs"><thead><tr><th>#</th><th>Command</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+
+    <h3>Part B · Switch port assignment in Packet Tracer</h3>
+    <div class="spec"><div><p class="lab">Task</p><p>One 2960 switch, four PCs on Fa0/1–Fa0/4. Create VLAN 10 named <b>LAB-A</b> on Fa0/1–Fa0/2 and VLAN 20 named <b>LAB-B</b> on Fa0/3–Fa0/4. Address the PCs 192.168.1.11–14/24. Ping within and across VLANs and record the result.</p></div>
+      <div><p class="lab">Commands you need</p><pre>enable
+configure terminal
+vlan 10
+ name LAB-A
+interface fa0/1
+ switchport mode access
+ switchport access vlan 10
+end
+show vlan brief</pre></div></div>
+    <label class="f"><span>Paste the output of <code>show vlan brief</code></span><textarea id="p2-vl" rows="7"></textarea></label>
+    <div class="ctrls"><button class="pri" id="p2-vgo">Check VLANs</button></div><div id="p2-vout"></div>
+  </div>
+</section>
+
+<!-- P3 -->
+<section id="p3" class="exp" hidden>
+  <div><span class="eyebrow">Practical 3 · Unit II · CO2</span><h2>Error detection and correction program</h2>
+  <p class="aim"><b>Aim:</b> Write a program for error detection and correction of 7/8-bit ASCII codes using Hamming code or CRC. Half the batch does Hamming, the other half CRC.</p></div>
+  <div class="bench">
+    <div class="ctrls"><div class="f"><span>Your assignment</span><div class="seg"><label><input type="radio" name="p3m" value="h" checked>Hamming code</label><label><input type="radio" name="p3m" value="c">CRC</label></div></div></div>
+    <div data-p3="h">
+      <h3>Specification · Hamming (11,7)</h3>
+      <div class="spec"><div><p class="lab">Input</p><p>Lines <code>&lt;char&gt; &lt;pos&gt;</code>. <code>pos</code> is the codeword bit flipped by the channel (1–11), 0 for no error.</p>
+        <p class="lab">Code</p><p>7-bit ASCII, even parity, parity bits at positions 1, 2, 4, 8. Data bits (MSB first) go to positions 3, 5, 6, 7, 9, 10, 11. Print bits from position 1 to 11.</p></div>
+        <div><p class="lab">Example</p><pre>K 5
+DATA 1001011
+CODEWORD 10110010011
+RECEIVED 10111010011
+SYNDROME 5
+CORRECTED 10110010011
+CHAR K</pre></div></div>
+      <h3>Starter code</h3><div data-code="Hamming.java|hamming.cpp"></div>
+      <h3>Test and check</h3><div data-check="p3h" data-run="Hamming|hamming"></div>
+    </div>
+    <div data-p3="c" hidden>
+      <h3>Specification · CRC</h3>
+      <div class="spec"><div><p class="lab">Input</p><p>Lines <code>&lt;char&gt; &lt;generator&gt; &lt;pos&gt;</code>. Data is the 8-bit ASCII code. <code>pos</code> is the codeword bit (1-based from the left) flipped by the channel, 0 for none.</p>
+        <p class="lab">Method</p><p>Append r zeros (r = generator length − 1), divide modulo 2, append the remainder. The receiver divides the received codeword.</p></div>
+        <div><p class="lab">Example</p><pre>K 10011 3
+DATA 01001011
+CRC 1001
+CODEWORD 010010111001
+RECEIVED 011010111001
+REMAINDER 1010
+STATUS ERROR DETECTED</pre></div></div>
+      <h3>Starter code</h3><div data-code="Crc.java|crc.cpp"></div>
+      <h3>Test and check</h3><div data-check="p3c" data-run="Crc|crc"></div>
+    </div>
+    <p class="note"><b>Wireshark extension:</b> send your codeword between two PCs with the P6/P7 programs and capture it. Note that the Ethernet FCS (CRC-32) is normally stripped by the NIC before Wireshark sees the frame.</p>
+  </div>
+</section>
+
+<!-- P4 -->
+<section id="p4" class="exp" hidden>
+  <div><span class="eyebrow">Practical 4 · Unit II · CO2</span><h2>Go-Back-N and Selective Repeat program</h2>
+  <p class="aim"><b>Aim:</b> Write a program to simulate the Go-Back-N and Selective Repeat modes of the sliding window protocol.</p></div>
+  <div class="bench">
+    <h3>Specification</h3>
+    <div class="spec"><div><p class="lab">Input</p><p>Lines <code>&lt;GBN|SR&gt; &lt;N&gt; &lt;frames&gt; [lost frames…]</code>. A listed frame is lost on its <b>first</b> transmission only.</p>
+      <p class="lab">Rounds</p><p><b>GBN:</b> send every frame in the window (<code>SEND i</code>, or <code>RESEND i</code> if sent before). Walk the window in order: <code>ACK i</code>; at the first loss print <code>LOST i</code> and <code>DISCARD</code> every later frame in the round. Then <code>TIMEOUT k</code> and slide base to k, or to the window end if nothing was lost.</p>
+      <p><b>SR:</b> send only the frames in the window not yet acked. Each frame is <code>ACK i</code> or <code>LOST i</code>. Then <code>TIMEOUT i</code> for each lost frame. Slide base past every acked frame.</p>
+      <p>Finish with <code>TOTAL &lt;transmissions&gt;</code>.</p></div>
+      <div><p class="lab">Example</p><pre>GBN 3 5 1
+SEND 0
+SEND 1
+SEND 2
+ACK 0
+LOST 1
+DISCARD 2
+TIMEOUT 1
+RESEND 1
+RESEND 2
+SEND 3
+ACK 1
+ACK 2
+ACK 3
+SEND 4
+ACK 4
+TOTAL 7</pre></div></div>
+    <h3>Starter code</h3><div data-code="SlidingWindow.java|sliding_window.cpp"></div>
+    <h3>Test and check</h3><div data-check="p4" data-run="SlidingWindow|sliding_window"></div>
+    <p class="note"><b>Extension:</b> run your P6 file transfer and capture it in Wireshark. Use Statistics → TCP Stream Graphs → Window Scaling to see TCP flow control at work.</p>
+  </div>
+</section>
+
+<!-- P5 -->
+<section id="p5" class="exp" hidden>
+  <div><span class="eyebrow">Practical 5 · Unit IV · CO4</span><h2>Single-area OSPFv2 in Packet Tracer</h2>
+  <p class="aim"><b>Aim:</b> Deploy dynamic routing with single-area OSPFv2 on three routers, verify adjacencies and routes, and observe re-routing when a link fails.</p></div>
+  <div class="bench">
+    <h3>Topology and addressing</h3>
+    <p class="note">Three 2911 routers in a triangle. Each router has one LAN with a 2960 switch and a PC (PC address .10, gateway .1).</p>
+    <div class="scroll"><table class="t"><thead><tr><th>Router</th><th>G0/0 (LAN)</th><th>G0/1</th><th>G0/2</th><th>Router ID</th></tr></thead><tbody>
+      <tr><td>R1</td><td>192.168.10.1/24</td><td>10.0.12.1/30 → R2</td><td>10.0.13.1/30 → R3</td><td>1.1.1.1</td></tr>
+      <tr><td>R2</td><td>192.168.20.1/24</td><td>10.0.12.2/30 → R1</td><td>10.0.23.1/30 → R3</td><td>2.2.2.2</td></tr>
+      <tr><td>R3</td><td>192.168.30.1/24</td><td>10.0.13.2/30 → R1</td><td>10.0.23.2/30 → R2</td><td>3.3.3.3</td></tr></tbody></table></div>
+    <div class="spec"><div><p class="lab">Steps</p><ol>
+      <li>Build the topology and configure interface addresses; <code>no shutdown</code> on each.</li>
+      <li>Enable OSPF process 1 in area 0 on every router (R1 shown on the right; write R2 and R3 yourself).</li>
+      <li>Verify with <code>show ip ospf neighbor</code> and <code>show ip route ospf</code>; ping PC to PC.</li>
+      <li>Shut down R1 G0/1 and check the routes again. Note the new next hop and cost.</li></ol></div>
+      <div><p class="lab">R1 example</p><pre>router ospf 1
+ router-id 1.1.1.1
+ network 192.168.10.0 0.0.0.255 area 0
+ network 10.0.12.0 0.0.0.3 area 0
+ network 10.0.13.0 0.0.0.3 area 0
+ passive-interface g0/0</pre></div></div>
+    <div class="ctrls"><label class="f"><span>Router</span><select id="p5-r"><option>R1</option><option>R2</option><option>R3</option></select></label></div>
+    <div class="two">
+      <label class="f"><span>Paste <code>show ip ospf neighbor</code></span><textarea id="p5-nb" rows="6"></textarea></label>
+      <label class="f"><span>Paste <code>show ip route</code></span><textarea id="p5-rt" rows="6"></textarea></label>
+    </div>
+    <div class="ctrls"><button class="pri" id="p5-go">Check routing</button></div><div id="p5-out"></div>
+
+    <h3>Program extension · link-state route computation</h3>
+    <div class="spec"><div><p class="lab">Input</p><p>First line T (number of tests). Each test: <code>n m src</code>, then m lines <code>u v cost</code> (undirected, routers 1..n).</p>
+      <p class="lab">Rules</p><p>Dijkstra: choose the unvisited router with the smallest distance (ties → smaller id) and relax only when the new distance is strictly smaller.</p></div>
+      <div><p class="lab">Output per test</p><pre>ROUTER 2
+DEST 1 NEXTHOP 1 COST 5
+DEST 3 NEXTHOP 3 COST 5</pre><p class="note">Unreachable: <code>DEST d UNREACHABLE</code></p></div></div>
+    <div data-code="LinkState.java|link_state.cpp"></div>
+    <div data-check="p5" data-run="LinkState|link_state"></div>
+  </div>
+</section>
+
+<!-- P6 -->
+<section id="p6" class="exp" hidden>
+  <div><span class="eyebrow">Practical 6 · Unit V · CO5</span><h2>TCP Berkeley socket programs</h2>
+  <p class="aim"><b>Aim:</b> Using TCP socket primitives, write a client and server for (a) saying hello, (b) file transfer, (c) arithmetic calculator and (d) trigonometric calculator. Capture the traffic in Wireshark.</p></div>
+  <div class="bench">
+    <h3>Protocol</h3>
+    <div class="spec"><div><p class="lab">Commands (client → server, one line each)</p>
+      <pre>HELLO &lt;name&gt;       → HELLO &lt;name&gt;, I am the server
+CALC &lt;a&gt; &lt;op&gt; &lt;b&gt;   → RESULT %.2f   | ERROR divide by zero
+TRIG &lt;fn&gt; &lt;deg&gt;    → RESULT %.4f   | ERROR undefined
+FILE &lt;name&gt; &lt;size&gt; → (then size raw bytes) OK &lt;size&gt; &lt;checksum&gt;
+BYE                → BYE</pre></div>
+      <div><p class="lab">Rules</p><ul><li>a, b are integers; op is <code>+ - * / %</code>; <code>/</code> is real division.</li><li>fn is sin, cos or tan of an angle in degrees; tan is undefined when |cos| &lt; 1e-9.</li>
+      <li>checksum = sum of all file bytes (unsigned) mod 65536.</li><li>The client reads commands from stdin, prints <code>SERVER: &lt;reply&gt;</code> for each, and for <code>FILE &lt;path&gt;</code> first prints <code>SENT &lt;size&gt; &lt;checksum&gt;</code>.</li>
+      <li>Java: format numbers with <code>Locale.ROOT</code> so a comma never appears.</li></ul></div></div>
+    <h3>Starter code</h3><div data-code="TcpServer.java|TcpClient.java|tcp_server.cpp|tcp_client.cpp"></div>
+    <h3>Test and check</h3>
+    <div class="spec"><div><p class="lab">Run</p><pre>Terminal 1:  java TcpServer          ./server
+Terminal 2:  java TcpClient &lt;serverIP&gt; 5000 &lt; commands.txt &gt; client.txt
+             ./client &lt;serverIP&gt; 5000 &lt; commands.txt &gt; client.txt</pre>
+      <p class="note">Create any file for the FILE line (for example <code>notes.txt</code>) in the client's folder. Start Wireshark on the interface first, filter <code>tcp.port == 5000</code>.</p></div>
+      <div><p class="lab">commands.txt <span class="setno"></span> <button class="sm" id="p6-new">New test set</button> <button class="sm" id="p6-cp">Copy</button></p><pre id="p6-cmd"></pre></div></div>
+    <label class="f"><span>Paste client.txt</span><textarea id="p6-out" rows="8"></textarea></label>
+    <div class="ctrls"><button class="pri" id="p6-go">Check</button></div><div id="p6-res"></div>
+    <p class="note"><b>Wireshark:</b> identify the SYN, SYN-ACK, ACK, the segments of the file transfer and the FIN exchange. Use Follow → TCP Stream to see the commands.</p>
+  </div>
+</section>
+
+<!-- P7 -->
+<section id="p7" class="exp" hidden>
+  <div><span class="eyebrow">Practical 7 · Unit V · CO5</span><h2>UDP file transfer program</h2>
+  <p class="aim"><b>Aim:</b> Using UDP sockets, transfer a script, a text, an audio and a video file between two machines, and analyse the datagrams in Wireshark.</p></div>
+  <div class="bench">
+    <h3>Protocol</h3>
+    <div class="spec"><div><ul><li>Each datagram = 4-byte sequence number (big-endian) + up to <i>chunk</i> bytes of the file.</li>
+      <li>After the last chunk the sender sends an END datagram: sequence −1 (0xFFFFFFFF) followed by the 4-byte packet count.</li>
+      <li>The receiver stops at END or after 5 s of silence and writes the chunks in sequence order.</li>
+      <li>checksum = sum of all file bytes (unsigned) mod 65536.</li></ul></div>
+      <div><p class="lab">Output</p><pre>sender:   SENT &lt;packets&gt; &lt;bytes&gt; &lt;checksum&gt;
+receiver: RECEIVED &lt;packets&gt; &lt;bytes&gt; &lt;checksum&gt; MISSING &lt;seqs|none&gt;</pre>
+      <p class="lab">Run</p><pre>java UdpReceiver 6000 out.mp4
+java UdpSender &lt;receiverIP&gt; 6000 demo.mp4 1024</pre></div></div>
+    <h3>Starter code</h3><div data-code="UdpSender.java|UdpReceiver.java|udp_sender.cpp|udp_receiver.cpp"></div>
+    <h3>Test and check</h3>
+    <p class="note">Transfer one file of each type. Paste the sender and receiver lines for each. Try once over Wi-Fi with the <code>sleep</code> removed to see datagrams go missing.</p>
+    <div id="p7-rows" class="p7rows"></div>
+    <div class="ctrls"><button class="pri" id="p7-go">Check transfers</button></div><div id="p7-res"></div>
+  </div>
+</section>
+
+<!-- P8 -->
+<section id="p8" class="exp" hidden>
+  <div><span class="eyebrow">Practical 8 · Units IV &amp; V · CO4</span><h2>IPv4 header generation and analysis</h2>
+  <p class="aim"><b>Aim:</b> Write your own packet-generation code for the IPv4 header, verify headers captured in Wireshark, and analyse the Ethernet, IP, TCP and UDP formats.</p></div>
+  <div class="bench">
+    <h3>Specification</h3>
+    <div class="spec"><div><p class="lab">Input lines</p><pre>BUILD &lt;src&gt; &lt;dst&gt; &lt;ttl&gt; &lt;proto&gt; &lt;totalLen&gt; &lt;id&gt;
+VERIFY &lt;40 hex digits&gt;</pre><p>Header: version 4, IHL 5, TOS 0, flags DF (0x4000), offset 0. Checksum = one's complement of the one's-complement sum of the ten 16-bit words.</p></div>
+      <div><p class="lab">Example</p><pre>BUILD 192.168.1.10 192.168.1.11 64 6 52 7238
+HEADER 450000341c46400040069b18c0a8010ac0a8010b
+CHECKSUM 0x9b18
+VERIFY 45000073000040004011b861c0a80001c0a800c7
+VALID</pre><p class="note">An invalid header prints <code>INVALID 0x&lt;correct checksum&gt;</code>.</p></div></div>
+    <h3>Starter code</h3><div data-code="IpHeader.java|ip_header.cpp"></div>
+    <h3>Test and check</h3><div data-check="p8" data-run="IpHeader|ip_header"></div>
+    <h3>Wireshark analysis</h3>
+    <p class="note">In Wireshark select a packet, right-click <b>Internet Protocol Version 4</b> → Copy → <b>…as Hex Stream</b> (a whole frame also works). Paste it below to decode and verify the header, then compare with your program's VERIFY result.</p>
+    <label class="f"><span>Hex stream</span><textarea id="p8-hex" rows="3" placeholder="4500003c1c46400040069b18c0a8010ac0a8010b"></textarea></label>
+    <div class="ctrls"><button class="pri" id="p8-go">Decode</button></div><div id="p8-out"></div>
+  </div>
+</section>
+
+<!-- P9 -->
+<section id="p9" class="exp" hidden>
+  <div><span class="eyebrow">Practical 9 · Unit VI · CO6</span><h2>HTTP client-server program</h2>
+  <p class="aim"><b>Aim:</b> Develop an HTTP server in Java or C++ that demonstrates HTTP/1.0 and HTTP/1.1 behaviour with success and error status codes, using Firefox as the client.</p></div>
+  <div class="bench">
+    <h3>Specification</h3>
+    <div class="spec"><div><p class="lab">Routes (port 8080, files in ./www)</p><ul>
+      <li>Existing file → 200 with Content-Type text/html; HEAD → same headers, no body</li>
+      <li>/old.html → 301 with <code>Location: /index.html</code>; /secret.html → 403; missing file → 404</li>
+      <li>Method other than GET/HEAD → 405 with <code>Allow: GET, HEAD</code></li>
+      <li>HTTP/1.1 request without Host, or a malformed request line → 400</li>
+      <li>Version other than 1.0/1.1 → 505 (reply as HTTP/1.1)</li></ul></div>
+      <div><p class="lab">Every response</p><ul><li>Status line uses the request's version (1.0 or 1.1)</li><li>Headers: Date, Server, Content-Length, Content-Type when there is a body</li>
+      <li><code>Connection: close</code> for HTTP/1.0 requests, 400 and 505; otherwise <code>keep-alive</code>, and the connection stays open</li></ul></div></div>
+    <h3>Starter code</h3><div data-code="MiniHttpServer.java|mini_http_server.cpp"></div>
+    <h3>Test and check</h3>
+    <div class="ctrls"><label class="f" style="flex:1 1 320px"><span>Test</span><select id="p9-t"></select></label></div>
+    <div class="cmdline"><pre id="p9-cmd"></pre><button class="sm" id="p9-cp">Copy</button></div>
+    <label class="f"><span>Paste the full response</span><textarea id="p9-in" rows="8"></textarea></label>
+    <div class="ctrls"><button class="pri" id="p9-go">Check response</button></div><div id="p9-res"></div>
+    <div class="prog" id="p9-prog"></div>
+    <h3>Firefox observations</h3>
+    <div class="chks col" id="p9-ff"></div>
+    <p class="note">HTTP/2 needs TLS with ALPN, which a plain socket server does not provide, and Firefox does not speak HTTP/2 over plain HTTP. Observe HTTP/2 on a public HTTPS site in the Network panel's Protocol column. There is no published HTTP/1.2; treat it as HTTP/1.1 with pipelining.</p>
+  </div>
+</section>
+</main>
+</div>
+
+<script>
+const ST={"Crc.java": "import java.util.Scanner;\n\n/* P3 (CRC): input lines \"<char> <generator> <pos>\", e.g. \"K 10011 3\".\n   Data = 8-bit ASCII. pos = codeword bit (1-based, from the left) flipped in the channel, 0 = none. */\npublic class Crc {\n\n    // Mod-2 division: returns the remainder (last r bits) of bits divided by gen.\n    static String remainder(String bits, String gen) {\n        char[] a = bits.toCharArray();\n        int r = gen.length() - 1;\n        // TODO: for i = 0 .. a.length-r-1: if a[i] == '1', XOR gen into a[i .. i+r]\n        return new String(a, a.length - r, r);\n    }\n\n    public static void main(String[] args) {\n        Scanner in = new Scanner(System.in);\n        while (in.hasNext()) {\n            char ch = in.next().charAt(0);\n            String gen = in.next();\n            int pos = in.nextInt();\n            int r = gen.length() - 1;\n\n            String data = String.format(\"%8s\", Integer.toBinaryString(ch)).replace(' ', '0');\n            String crc = \"\";       // TODO: remainder of data followed by r zeros\n            String codeword = \"\";  // TODO: data + crc\n            String received = codeword;\n            // TODO: if pos > 0, flip bit pos (1-based) of received\n            String rem = remainder(received, gen);\n\n            System.out.println(\"DATA \" + data);\n            System.out.println(\"CRC \" + crc);\n            System.out.println(\"CODEWORD \" + codeword);\n            System.out.println(\"RECEIVED \" + received);\n            System.out.println(\"REMAINDER \" + rem);\n            System.out.println(\"STATUS \" + (rem.contains(\"1\") ? \"ERROR DETECTED\" : \"NO ERROR\"));\n        }\n    }\n}\n", "Hamming.java": "import java.util.Scanner;\n\n/* P3 (Hamming): input lines \"<char> <pos>\", pos = bit to flip in the channel (0 = no error).\n   7-bit ASCII, (11,7) code, even parity, parity bits at positions 1,2,4,8.\n   Data bits (MSB first) fill positions 3,5,6,7,9,10,11. Bits are printed position 1 -> 11. */\npublic class Hamming {\n\n    static boolean isParity(int p) { return (p & (p - 1)) == 0; }\n\n    static int[] encode(int[] data) {          // data[0..6], returns code[1..11] (index 0 unused)\n        int[] code = new int[12];\n        // TODO 1: copy data bits into the non-parity positions\n        // TODO 2: for p in {1,2,4,8}: code[p] = XOR of code[q] for all q != p with (q & p) != 0\n        return code;\n    }\n\n    static int syndrome(int[] rx) {\n        // TODO: XOR together the positions q (1..11) where rx[q] == 1\n        return 0;\n    }\n\n    static String str(int[] c) { StringBuilder s = new StringBuilder(); for (int q = 1; q <= 11; q++) s.append(c[q]); return s.toString(); }\n\n    public static void main(String[] args) {\n        Scanner in = new Scanner(System.in);\n        while (in.hasNext()) {\n            char ch = in.next().charAt(0);\n            int pos = in.nextInt();\n            int[] data = new int[7];\n            for (int i = 0; i < 7; i++) data[i] = (ch >> (6 - i)) & 1;\n\n            int[] code = encode(data);\n            int[] rx = code.clone();\n            if (pos > 0) rx[pos] ^= 1;\n            int syn = syndrome(rx);\n            int[] fixed = rx.clone();\n            // TODO: if syn is between 1 and 11, flip fixed[syn]\n            int value = 0;\n            // TODO: rebuild the 7-bit value from the data positions of 'fixed'\n\n            StringBuilder d = new StringBuilder(); for (int b : data) d.append(b);\n            System.out.println(\"DATA \" + d);\n            System.out.println(\"CODEWORD \" + str(code));\n            System.out.println(\"RECEIVED \" + str(rx));\n            System.out.println(\"SYNDROME \" + syn);\n            System.out.println(\"CORRECTED \" + str(fixed));\n            System.out.println(\"CHAR \" + (char) value);\n        }\n    }\n}\n", "IpHeader.java": "import java.util.Scanner;\n\n/* P8: IPv4 header builder and verifier.\n   BUILD <srcIP> <dstIP> <ttl> <protocol> <totalLength> <id>\n       -> HEADER <40 hex digits>   and   CHECKSUM 0x<4 hex>\n       Version 4, IHL 5, TOS 0, flags = DF (0x4000), fragment offset 0.\n   VERIFY <40 hex digits> -> VALID   or   INVALID 0x<correct checksum> */\npublic class IpHeader {\n\n    static int checksum(int[] h) {\n        long sum = 0;\n        // TODO: add the ten 16-bit words (h[i] << 8 | h[i+1]), fold carries, return ~sum & 0xFFFF\n        return 0;\n    }\n\n    static String hex(int[] h) { StringBuilder s = new StringBuilder(); for (int b : h) s.append(String.format(\"%02x\", b)); return s.toString(); }\n\n    public static void main(String[] args) {\n        Scanner in = new Scanner(System.in);\n        while (in.hasNext()) {\n            String op = in.next();\n            int[] h = new int[20];\n            if (op.equals(\"BUILD\")) {\n                String[] s = in.next().split(\"\\\\.\"), d = in.next().split(\"\\\\.\");\n                int ttl = in.nextInt(), proto = in.nextInt(), len = in.nextInt(), id = in.nextInt();\n                // TODO: fill h[0..19] (checksum bytes h[10], h[11] = 0 first)\n                int c = checksum(h);\n                // TODO: store c into h[10], h[11]\n                System.out.println(\"HEADER \" + hex(h));\n                System.out.println(String.format(\"CHECKSUM 0x%04x\", c));\n            } else {\n                String x = in.next();\n                for (int i = 0; i < 20; i++) h[i] = Integer.parseInt(x.substring(2 * i, 2 * i + 2), 16);\n                // TODO: a correct header sums to 0 -> VALID; else zero h[10],h[11] and print INVALID with checksum(h)\n            }\n        }\n    }\n}\n", "LineEncoding.java": "import java.util.Scanner;\n\n/* P1: Line encoding. Reads one bit string per line until EOF.\n   Prints 6 lines per input. Each bit gives TWO half-bit levels: '+', '0' or '-'. */\npublic class LineEncoding {\n\n    static String unipolar(String bits) {\n        StringBuilder s = new StringBuilder();\n        for (char b : bits.toCharArray()) s.append(b == '1' ? \"++\" : \"00\");   // done for you\n        return s.toString();\n    }\n\n    static String nrzL(String bits) {\n        // TODO: 1 -> \"++\", 0 -> \"--\"\n        return \"\";\n    }\n\n    static String nrzI(String bits) {\n        // TODO: start at level '-'; invert the level on every 1; hold it for both halves\n        return \"\";\n    }\n\n    static String ami(String bits) {\n        // TODO: 0 -> \"00\"; 1s alternate \"++\", \"--\", \"++\" ... (first 1 is \"++\")\n        return \"\";\n    }\n\n    static String manchester(String bits) {\n        // TODO: IEEE 802.3 -> 0 = \"+-\" (high to low), 1 = \"-+\" (low to high)\n        return \"\";\n    }\n\n    static String diffManchester(String bits) {\n        // TODO: previous level starts at '+'. Bit 0: transition at start of bit; bit 1: no transition.\n        //       Always a transition in the middle of the bit.\n        return \"\";\n    }\n\n    public static void main(String[] args) {\n        Scanner in = new Scanner(System.in);\n        while (in.hasNext()) {\n            String b = in.next();\n            System.out.println(\"UNIPOLAR \" + unipolar(b));\n            System.out.println(\"NRZ-L \" + nrzL(b));\n            System.out.println(\"NRZ-I \" + nrzI(b));\n            System.out.println(\"AMI \" + ami(b));\n            System.out.println(\"MANCHESTER \" + manchester(b));\n            System.out.println(\"DIFF-MANCHESTER \" + diffManchester(b));\n        }\n    }\n}\n", "LinkState.java": "import java.util.*;\n\n/* P5 extension: link-state (OSPF-style) routing table with Dijkstra.\n   Input: T, then for each test \"n m src\" followed by m lines \"u v cost\" (undirected, routers 1..n).\n   Rules: pick the unvisited router with the smallest distance (ties -> smallest id);\n          relax only when the new distance is STRICTLY smaller. */\npublic class LinkState {\n    public static void main(String[] args) {\n        Scanner in = new Scanner(System.in);\n        int T = in.nextInt();\n        while (T-- > 0) {\n            int n = in.nextInt(), m = in.nextInt(), src = in.nextInt();\n            int[][] e = new int[m][3];\n            for (int i = 0; i < m; i++) { e[i][0] = in.nextInt(); e[i][1] = in.nextInt(); e[i][2] = in.nextInt(); }\n\n            long[] dist = new long[n + 1];\n            int[] prev = new int[n + 1];\n            boolean[] done = new boolean[n + 1];\n            Arrays.fill(dist, Long.MAX_VALUE);\n            dist[src] = 0;\n            // TODO: Dijkstra -- repeat: choose u, mark done, relax every edge touching u\n\n            System.out.println(\"ROUTER \" + src);\n            for (int d = 1; d <= n; d++) {\n                if (d == src) continue;\n                if (dist[d] == Long.MAX_VALUE) { System.out.println(\"DEST \" + d + \" UNREACHABLE\"); continue; }\n                int hop = d;\n                // TODO: walk prev[] back from d until prev[hop] == src -> hop is the next hop\n                System.out.println(\"DEST \" + d + \" NEXTHOP \" + hop + \" COST \" + dist[d]);\n            }\n        }\n    }\n}\n", "MiniHttpServer.java": "import java.io.*;\nimport java.net.*;\nimport java.nio.file.*;\nimport java.text.SimpleDateFormat;\nimport java.util.*;\n\n/* P9 HTTP server. Run: java MiniHttpServer   (port 8080, serves files from ./www)\n   Put index.html and secret.html in ./www. Test with Firefox and the curl commands in the lab manual. */\npublic class MiniHttpServer {\n    static final int PORT = 8080;\n    static final Map<Integer, String> REASON = Map.of(200, \"OK\", 301, \"Moved Permanently\", 400, \"Bad Request\",\n            403, \"Forbidden\", 404, \"Not Found\", 405, \"Method Not Allowed\", 505, \"HTTP Version Not Supported\");\n\n    static String httpDate() {\n        SimpleDateFormat f = new SimpleDateFormat(\"EEE, dd MMM yyyy HH:mm:ss 'GMT'\", Locale.US);\n        f.setTimeZone(TimeZone.getTimeZone(\"GMT\"));\n        return f.format(new Date());\n    }\n\n    // Writes one complete response. extra = additional header lines, each ending in \"\\r\\n\".\n    static void respond(OutputStream out, String version, int code, String type, byte[] body,\n                        boolean head, String extra) throws IOException {\n        // TODO: status line \"<version> <code> <reason>\\r\\n\", then Date, Server, Content-Type (if body),\n        //       Content-Length, Connection (close for HTTP/1.0, 400 and 505; keep-alive otherwise), extra,\n        //       a blank line, then the body unless this is a HEAD request\n    }\n\n    // Handles one request. Returns false when the connection must be closed.\n    static boolean serve(BufferedReader in, OutputStream out) throws IOException {\n        String requestLine = in.readLine();\n        if (requestLine == null) return false;\n        Map<String, String> headers = new HashMap<>();\n        String h;\n        while ((h = in.readLine()) != null && !h.isEmpty()) {\n            int c = h.indexOf(':');\n            if (c > 0) headers.put(h.substring(0, c).trim().toLowerCase(), h.substring(c + 1).trim());\n        }\n        System.out.println(requestLine);\n        // TODO 1: split requestLine into method, path, version. Wrong shape -> 400\n        // TODO 2: version not HTTP/1.0 or HTTP/1.1 -> 505 (reply as HTTP/1.1)\n        // TODO 3: HTTP/1.1 without a Host header -> 400\n        // TODO 4: method other than GET/HEAD -> 405 with \"Allow: GET, HEAD\"\n        // TODO 5: /old.html -> 301 with \"Location: /index.html\"; /secret.html -> 403\n        // TODO 6: file under ./www -> 200 (text/html), otherwise 404\n        // TODO 7: return true (keep the connection open) only for HTTP/1.1 requests that did not end in 400 or 505\n        return false;\n    }\n\n    public static void main(String[] args) throws IOException {\n        ServerSocket server = new ServerSocket(PORT);\n        System.out.println(\"http://localhost:\" + PORT + \"/index.html\");\n        while (true) {\n            try (Socket s = server.accept()) {\n                s.setSoTimeout(5000);   // keep-alive timeout\n                BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));\n                OutputStream out = s.getOutputStream();\n                while (serve(in, out)) { }\n            } catch (SocketTimeoutException e) { /* idle keep-alive connection closed */ }\n        }\n    }\n}\n", "SlidingWindow.java": "import java.util.*;\n\n/* P4: Sliding window in rounds. Input lines \"<GBN|SR> <N> <frames> [lost frames...]\".\n   A listed frame is lost on its FIRST transmission only. See the lab manual for the round rules. */\npublic class SlidingWindow {\n    static List<String> out = new ArrayList<>();\n    static Set<Integer> sent = new HashSet<>(), lost = new HashSet<>(), used = new HashSet<>();\n    static int tx = 0;\n\n    static void send(int i) { out.add((sent.contains(i) ? \"RESEND \" : \"SEND \") + i); sent.add(i); tx++; }\n    static boolean lostNow(int i) { if (lost.contains(i) && !used.contains(i)) { used.add(i); return true; } return false; }\n\n    static void goBackN(int N, int total) {\n        int base = 0;\n        while (base < total) {\n            int end = Math.min(base + N, total);\n            // TODO 1: send every frame base .. end-1\n            // TODO 2: walk the same frames: after a loss print DISCARD i,\n            //         else if lostNow(i) print LOST i (remember it), else print ACK i\n            // TODO 3: if a frame was lost print TIMEOUT k and set base = k, otherwise base = end\n            base = end; // placeholder so the loop ends; replace\n        }\n    }\n\n    static void selectiveRepeat(int N, int total) {\n        Set<Integer> acked = new HashSet<>();\n        int base = 0;\n        while (base < total) {\n            int end = Math.min(base + N, total);\n            // TODO 1: window = frames base .. end-1 that are not yet acked; send each\n            // TODO 2: for each frame in window: LOST i if lostNow(i), else ACK i and add to acked\n            // TODO 3: print TIMEOUT i for each frame lost this round\n            // TODO 4: slide base forward while base is acked\n            base = end; // placeholder so the loop ends; replace\n        }\n    }\n\n    public static void main(String[] args) {\n        Scanner in = new Scanner(System.in);\n        while (in.hasNextLine()) {\n            String line = in.nextLine().trim();\n            if (line.isEmpty()) continue;\n            String[] t = line.split(\"\\\\s+\");\n            int N = Integer.parseInt(t[1]), total = Integer.parseInt(t[2]);\n            out.clear(); sent.clear(); lost.clear(); used.clear(); tx = 0;\n            for (int k = 3; k < t.length; k++) lost.add(Integer.parseInt(t[k]));\n            if (t[0].equals(\"GBN\")) goBackN(N, total); else selectiveRepeat(N, total);\n            for (String s : out) System.out.println(s);\n            System.out.println(\"TOTAL \" + tx);\n        }\n    }\n}\n", "TcpClient.java": "import java.io.*;\nimport java.net.*;\nimport java.nio.file.*;\n\n/* P6 client. Run: java TcpClient <serverIP> 5000 < commands.txt\n   Sends each command line, prints \"SERVER: <reply>\". For \"FILE <path>\" it sends\n   \"FILE <name> <size>\\n\" followed by the raw bytes and first prints \"SENT <size> <checksum>\". */\npublic class TcpClient {\n    static String readLine(InputStream in) throws IOException {\n        StringBuilder s = new StringBuilder();\n        int c;\n        while ((c = in.read()) != -1 && c != '\\n') if (c != '\\r') s.append((char) c);\n        return (c == -1 && s.length() == 0) ? null : s.toString();\n    }\n\n    public static void main(String[] args) throws IOException {\n        String host = args[0];\n        int port = Integer.parseInt(args[1]);\n        Socket sock = null;   // TODO 1: connect() to host:port (sends SYN)\n        InputStream in = sock.getInputStream();\n        OutputStream out = sock.getOutputStream();\n        BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));\n\n        String cmd;\n        while ((cmd = stdin.readLine()) != null) {\n            cmd = cmd.trim();\n            if (cmd.isEmpty()) continue;\n            if (cmd.startsWith(\"FILE \")) {\n                byte[] data = Files.readAllBytes(Paths.get(cmd.substring(5).trim()));\n                String name = Paths.get(cmd.substring(5).trim()).getFileName().toString();\n                int sum = 0;\n                // TODO 2: checksum = (sum of unsigned bytes) & 0xFFFF\n                System.out.println(\"SENT \" + data.length + \" \" + sum);\n                // TODO 3: send \"FILE name size\\n\" then the bytes\n            } else {\n                // TODO 4: send cmd + \"\\n\"\n            }\n            out.flush();\n            String reply = readLine(in);\n            System.out.println(\"SERVER: \" + reply);\n            if (\"BYE\".equals(reply)) break;\n        }\n        // TODO 5: close() the socket\n    }\n}\n", "TcpServer.java": "import java.io.*;\nimport java.net.*;\nimport java.util.Locale;\n\n/* P6 server. Run: java TcpServer        (listens on port 5000)\n   Protocol: one command per line, one reply line per command (see lab manual). */\npublic class TcpServer {\n    static final int PORT = 5000;\n\n    // Reads bytes up to '\\n'. Raw bytes, not BufferedReader, so file bytes are not swallowed.\n    static String readLine(InputStream in) throws IOException {\n        StringBuilder s = new StringBuilder();\n        int c;\n        while ((c = in.read()) != -1 && c != '\\n') if (c != '\\r') s.append((char) c);\n        return (c == -1 && s.length() == 0) ? null : s.toString();\n    }\n\n    static String handle(String line, InputStream in) throws IOException {\n        String[] t = line.trim().split(\"\\\\s+\");\n        switch (t[0]) {\n            case \"HELLO\":\n                return \"HELLO \" + t[1] + \", I am the server\";\n            case \"CALC\":\n                // TODO: a = t[1], op = t[2], b = t[3] (op is + - * / %)\n                //       reply String.format(Locale.ROOT, \"RESULT %.2f\", value) or \"ERROR divide by zero\"\n                return \"TODO\";\n            case \"TRIG\":\n                // TODO: t[1] is sin|cos|tan, t[2] is degrees. Reply \"RESULT %.4f\" (Locale.ROOT).\n                //       tan when |cos| < 1e-9 -> \"ERROR undefined\"\n                return \"TODO\";\n            case \"FILE\":\n                // TODO: name = t[1], size = t[2]. Read EXACTLY size bytes from in,\n                //       save them as \"received_\" + name, checksum = (sum of unsigned bytes) & 0xFFFF\n                //       reply \"OK <size> <checksum>\"\n                return \"TODO\";\n            case \"BYE\":\n                return \"BYE\";\n        }\n        return \"ERROR unknown command\";\n    }\n\n    public static void main(String[] args) throws IOException {\n        ServerSocket server = null;   // TODO 1: create the server socket on PORT (socket + bind + listen)\n        System.out.println(\"Server listening on port \" + PORT);\n        while (true) {\n            Socket client = null;     // TODO 2: accept() a client (blocks until the 3-way handshake completes)\n            System.out.println(\"Client connected: \" + client.getRemoteSocketAddress());\n            InputStream in = client.getInputStream();\n            OutputStream out = client.getOutputStream();\n            String line;\n            while ((line = readLine(in)) != null) {\n                String reply = handle(line, in);\n                System.out.println(line.startsWith(\"FILE\") ? line + \" -> \" + reply : line + \" -> \" + reply);\n                // TODO 3: write reply + \"\\n\" to out and flush\n                if (reply.equals(\"BYE\")) break;\n            }\n            // TODO 4: close() the client socket (sends FIN)\n        }\n    }\n}\n", "UdpReceiver.java": "import java.io.*;\nimport java.net.*;\nimport java.nio.ByteBuffer;\nimport java.util.*;\n\n/* P7 receiver. Run: java UdpReceiver 6000 <outputFile>\n   Collects datagrams until the END datagram (seq -1) or 5 s of silence, writes the chunks\n   in sequence order and prints:\n   \"RECEIVED <packets> <bytes> <checksum> MISSING <comma-separated seqs | none>\" */\npublic class UdpReceiver {\n    public static void main(String[] args) throws Exception {\n        int port = Integer.parseInt(args[0]);\n        DatagramSocket sock = null;   // TODO 1: bind a DatagramSocket to port\n        sock.setSoTimeout(5000);\n        TreeMap<Integer, byte[]> chunks = new TreeMap<>();\n        int expected = -1;            // total packets, from the END datagram\n        byte[] buf = new byte[65535];\n        try {\n            while (true) {\n                DatagramPacket p = new DatagramPacket(buf, buf.length);\n                sock.receive(p);      // recvfrom(): blocks until a datagram arrives (or 5 s timeout)\n                ByteBuffer b = ByteBuffer.wrap(p.getData(), 0, p.getLength());\n                int seq = b.getInt();\n                // TODO 2: if seq == -1: expected = b.getInt(); break\n                //         else store the remaining bytes in chunks under seq\n            }\n        } catch (SocketTimeoutException e) {\n            System.err.println(\"Timed out waiting for datagrams\");\n        }\n        // TODO 3: write chunks in order to args[1]; count bytes; checksum\n        // TODO 4: MISSING = every seq in 0 .. expected-1 not in chunks\n        sock.close();\n    }\n}\n", "UdpSender.java": "import java.io.*;\nimport java.net.*;\nimport java.nio.ByteBuffer;\nimport java.nio.file.*;\n\n/* P7 sender. Run: java UdpSender <receiverIP> 6000 <file> <chunkBytes>\n   Each datagram = 4-byte sequence number (big-endian) + chunk.\n   After the last chunk send an END datagram: seq = -1 followed by 4 bytes = total packet count.\n   Prints \"SENT <packets> <bytes> <checksum>\". checksum = (sum of unsigned bytes) & 0xFFFF */\npublic class UdpSender {\n    public static void main(String[] args) throws Exception {\n        InetAddress host = InetAddress.getByName(args[0]);\n        int port = Integer.parseInt(args[1]);\n        byte[] file = Files.readAllBytes(Paths.get(args[2]));\n        int chunk = Integer.parseInt(args[3]);\n\n        DatagramSocket sock = null;   // TODO 1: create a DatagramSocket (no connect, no handshake)\n        int packets = 0, sum = 0;\n        for (int off = 0; off < file.length; off += chunk) {\n            int len = Math.min(chunk, file.length - off);\n            ByteBuffer b = ByteBuffer.allocate(4 + len);\n            // TODO 2: put the sequence number (packets) and the chunk into b\n            // TODO 3: sendto: sock.send(new DatagramPacket(...))\n            packets++;\n            Thread.sleep(1);          // pacing; remove it to see what happens on Wi-Fi\n        }\n        // TODO 4: compute sum over the whole file\n        // TODO 5: send the END datagram (seq -1, then packets)\n        System.out.println(\"SENT \" + packets + \" \" + file.length + \" \" + sum);\n        sock.close();\n    }\n}\n", "crc.cpp": "// P3 (CRC): input lines \"<char> <generator> <pos>\", e.g. \"K 10011 3\".\n// Data = 8-bit ASCII. pos = codeword bit (1-based, from the left) flipped, 0 = none.\n#include <iostream>\n#include <string>\n#include <bitset>\nusing namespace std;\n\n// Mod-2 division: returns the remainder (last r bits).\nstring remainderOf(string a, const string& gen) {\n    int r = gen.size() - 1;\n    // TODO: for i = 0 .. a.size()-r-1: if a[i] == '1', XOR gen into a[i .. i+r]\n    return a.substr(a.size() - r);\n}\n\nint main() {\n    char ch; string gen; int pos;\n    while (cin >> ch >> gen >> pos) {\n        int r = gen.size() - 1;\n        string data = bitset<8>((unsigned char)ch).to_string();\n        string crc = \"\";       // TODO: remainder of data followed by r zeros\n        string codeword = \"\";  // TODO: data + crc\n        string received = codeword;\n        // TODO: if pos > 0, flip bit pos (1-based) of received\n        string rem = remainderOf(received, gen);\n\n        cout << \"DATA \" << data << \"\\n\";\n        cout << \"CRC \" << crc << \"\\n\";\n        cout << \"CODEWORD \" << codeword << \"\\n\";\n        cout << \"RECEIVED \" << received << \"\\n\";\n        cout << \"REMAINDER \" << rem << \"\\n\";\n        cout << \"STATUS \" << (rem.find('1') != string::npos ? \"ERROR DETECTED\" : \"NO ERROR\") << \"\\n\";\n    }\n}\n", "hamming.cpp": "// P3 (Hamming): input lines \"<char> <pos>\", pos = bit to flip in the channel (0 = no error).\n// 7-bit ASCII, (11,7) code, even parity, parity bits at 1,2,4,8.\n// Data bits (MSB first) fill positions 3,5,6,7,9,10,11. Print positions 1 -> 11.\n#include <iostream>\n#include <string>\nusing namespace std;\n\nbool isParity(int p) { return (p & (p - 1)) == 0; }\n\nvoid encode(const int data[7], int code[12]) {   // code[1..11]\n    for (int q = 0; q < 12; q++) code[q] = 0;\n    // TODO 1: copy data bits into the non-parity positions\n    // TODO 2: for p in {1,2,4,8}: code[p] = XOR of code[q] for q != p with (q & p) != 0\n}\nint syndrome(const int rx[12]) {\n    // TODO: XOR together the positions q (1..11) where rx[q] == 1\n    return 0;\n}\nstring str(const int c[12]) { string s; for (int q = 1; q <= 11; q++) s += char('0' + c[q]); return s; }\n\nint main() {\n    char ch; int pos;\n    while (cin >> ch >> pos) {\n        int data[7], code[12], rx[12], fixed[12];\n        for (int i = 0; i < 7; i++) data[i] = (ch >> (6 - i)) & 1;\n        encode(data, code);\n        for (int q = 0; q < 12; q++) rx[q] = code[q];\n        if (pos > 0) rx[pos] ^= 1;\n        int syn = syndrome(rx);\n        for (int q = 0; q < 12; q++) fixed[q] = rx[q];\n        // TODO: if syn is between 1 and 11, flip fixed[syn]\n        int value = 0;\n        // TODO: rebuild the 7-bit value from the data positions of fixed\n\n        cout << \"DATA \"; for (int b : data) cout << b; cout << \"\\n\";\n        cout << \"CODEWORD \" << str(code) << \"\\n\";\n        cout << \"RECEIVED \" << str(rx) << \"\\n\";\n        cout << \"SYNDROME \" << syn << \"\\n\";\n        cout << \"CORRECTED \" << str(fixed) << \"\\n\";\n        cout << \"CHAR \" << char(value) << \"\\n\";\n    }\n}\n", "ip_header.cpp": "// P8: IPv4 header builder and verifier.\n// BUILD <srcIP> <dstIP> <ttl> <protocol> <totalLength> <id>\n//     -> HEADER <40 hex digits>  and  CHECKSUM 0x<4 hex>   (version 4, IHL 5, TOS 0, DF set)\n// VERIFY <40 hex digits> -> VALID  or  INVALID 0x<correct checksum>\n#include <iostream>\n#include <string>\n#include <cstdio>\nusing namespace std;\n\nint checksum(const int h[20]) {\n    long sum = 0;\n    // TODO: add the ten 16-bit words (h[i] << 8 | h[i+1]), fold carries, return ~sum & 0xFFFF\n    return 0;\n}\nvoid printHex(const int h[20]) { for (int i = 0; i < 20; i++) printf(\"%02x\", h[i]); printf(\"\\n\"); }\n\nint main() {\n    string op;\n    while (cin >> op) {\n        int h[20] = {0};\n        if (op == \"BUILD\") {\n            string s, d; int ttl, proto, len, id;\n            cin >> s >> d >> ttl >> proto >> len >> id;\n            int a, b, c, e, f, g, k, l;\n            sscanf(s.c_str(), \"%d.%d.%d.%d\", &a, &b, &c, &e);\n            sscanf(d.c_str(), \"%d.%d.%d.%d\", &f, &g, &k, &l);\n            // TODO: fill h[0..19] (checksum bytes h[10], h[11] = 0 first)\n            int cs = checksum(h);\n            // TODO: store cs into h[10], h[11]\n            printf(\"HEADER \"); printHex(h);\n            printf(\"CHECKSUM 0x%04x\\n\", cs);\n        } else {\n            string x; cin >> x;\n            for (int i = 0; i < 20; i++) h[i] = stoi(x.substr(2 * i, 2), nullptr, 16);\n            // TODO: a correct header sums to 0 -> VALID; else zero h[10],h[11] and print INVALID with checksum\n        }\n        fflush(stdout);\n    }\n}\n", "line_encoding.cpp": "// P1: Line encoding. Reads one bit string per line until EOF.\n// Prints 6 lines per input. Each bit gives TWO half-bit levels: '+', '0' or '-'.\n#include <iostream>\n#include <string>\nusing namespace std;\n\nstring unipolar(const string& bits) {\n    string s;\n    for (char b : bits) s += (b == '1') ? \"++\" : \"00\";   // done for you\n    return s;\n}\nstring nrzL(const string& bits) {\n    // TODO: 1 -> \"++\", 0 -> \"--\"\n    return \"\";\n}\nstring nrzI(const string& bits) {\n    // TODO: start at level '-'; invert the level on every 1; hold it for both halves\n    return \"\";\n}\nstring ami(const string& bits) {\n    // TODO: 0 -> \"00\"; 1s alternate \"++\", \"--\", ... (first 1 is \"++\")\n    return \"\";\n}\nstring manchester(const string& bits) {\n    // TODO: IEEE 802.3 -> 0 = \"+-\", 1 = \"-+\"\n    return \"\";\n}\nstring diffManchester(const string& bits) {\n    // TODO: previous level starts at '+'. Bit 0: transition at start; bit 1: none.\n    //       Always a transition in the middle.\n    return \"\";\n}\n\nint main() {\n    string b;\n    while (cin >> b) {\n        cout << \"UNIPOLAR \" << unipolar(b) << \"\\n\";\n        cout << \"NRZ-L \" << nrzL(b) << \"\\n\";\n        cout << \"NRZ-I \" << nrzI(b) << \"\\n\";\n        cout << \"AMI \" << ami(b) << \"\\n\";\n        cout << \"MANCHESTER \" << manchester(b) << \"\\n\";\n        cout << \"DIFF-MANCHESTER \" << diffManchester(b) << \"\\n\";\n    }\n}\n", "link_state.cpp": "// P5 extension: link-state (OSPF-style) routing table with Dijkstra.\n// Input: T, then per test \"n m src\" and m lines \"u v cost\" (undirected, routers 1..n).\n// Rules: pick unvisited router with smallest distance (ties -> smallest id);\n//        relax only when the new distance is STRICTLY smaller.\n#include <iostream>\n#include <vector>\n#include <climits>\nusing namespace std;\n\nint main() {\n    int T; cin >> T;\n    while (T--) {\n        int n, m, src; cin >> n >> m >> src;\n        vector<int> u(m), v(m), c(m);\n        for (int i = 0; i < m; i++) cin >> u[i] >> v[i] >> c[i];\n\n        vector<long long> dist(n + 1, LLONG_MAX);\n        vector<int> prev(n + 1, 0);\n        vector<bool> done(n + 1, false);\n        dist[src] = 0;\n        // TODO: Dijkstra -- repeat: choose u, mark done, relax every edge touching u\n\n        cout << \"ROUTER \" << src << \"\\n\";\n        for (int d = 1; d <= n; d++) {\n            if (d == src) continue;\n            if (dist[d] == LLONG_MAX) { cout << \"DEST \" << d << \" UNREACHABLE\\n\"; continue; }\n            int hop = d;\n            // TODO: walk prev[] back from d until prev[hop] == src\n            cout << \"DEST \" << d << \" NEXTHOP \" << hop << \" COST \" << dist[d] << \"\\n\";\n        }\n    }\n}\n", "mini_http_server.cpp": "// P9 HTTP server (Linux/POSIX). Build: g++ mini_http_server.cpp -o httpd   Run: ./httpd  (port 8080, files in ./www)\n#include <iostream>\n#include <fstream>\n#include <sstream>\n#include <string>\n#include <map>\n#include <ctime>\n#include <unistd.h>\n#include <arpa/inet.h>\n#include <sys/socket.h>\nusing namespace std;\nconst int PORT = 8080;\nmap<int, string> REASON = {{200, \"OK\"}, {301, \"Moved Permanently\"}, {400, \"Bad Request\"}, {403, \"Forbidden\"},\n                           {404, \"Not Found\"}, {405, \"Method Not Allowed\"}, {505, \"HTTP Version Not Supported\"}};\n\nstring httpDate() { char b[64]; time_t t = time(nullptr); strftime(b, sizeof b, \"%a, %d %b %Y %H:%M:%S GMT\", gmtime(&t)); return b; }\n\nbool readLine(int fd, string& s) {\n    s.clear(); char c; int n;\n    while ((n = recv(fd, &c, 1, 0)) == 1 && c != '\\n') if (c != '\\r') s += c;\n    return n == 1;\n}\n\n// extra = additional header lines, each ending in \"\\r\\n\"\nvoid respond(int fd, const string& version, int code, const string& type, const string& body, bool head, const string& extra) {\n    // TODO: status line, Date, Server, Content-Type (if body), Content-Length,\n    //       Connection (close for HTTP/1.0, 400 and 505; keep-alive otherwise), extra, blank line, body unless HEAD\n}\n\n// Handles one request; returns false when the connection must close.\nbool serve(int fd) {\n    string requestLine, h;\n    if (!readLine(fd, requestLine)) return false;\n    map<string, string> headers;\n    while (readLine(fd, h) && !h.empty()) {\n        size_t c = h.find(':');\n        if (c != string::npos) { string k = h.substr(0, c); for (auto& ch : k) ch = tolower(ch); headers[k] = h.substr(c + 2); }\n    }\n    cout << requestLine << endl;\n    // TODO 1: split requestLine into method, path, version. Wrong shape -> 400\n    // TODO 2: version not HTTP/1.0 or HTTP/1.1 -> 505 (reply as HTTP/1.1)\n    // TODO 3: HTTP/1.1 without Host -> 400\n    // TODO 4: method other than GET/HEAD -> 405 with \"Allow: GET, HEAD\"\n    // TODO 5: /old.html -> 301 \"Location: /index.html\"; /secret.html -> 403\n    // TODO 6: file under ./www -> 200 text/html, otherwise 404\n    // TODO 7: return true only for HTTP/1.1 requests that did not end in 400 or 505\n    return false;\n}\n\nint main() {\n    int s = socket(AF_INET, SOCK_STREAM, 0), on = 1;\n    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof on);\n    sockaddr_in a{}; a.sin_family = AF_INET; a.sin_addr.s_addr = INADDR_ANY; a.sin_port = htons(PORT);\n    if (bind(s, (sockaddr*)&a, sizeof a) < 0 || listen(s, 10) < 0) { perror(\"bind/listen\"); return 1; }\n    cout << \"http://localhost:\" << PORT << \"/index.html\" << endl;\n    while (true) {\n        int c = accept(s, nullptr, nullptr);\n        timeval tv{5, 0}; setsockopt(c, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv);\n        while (serve(c)) { }\n        close(c);\n    }\n}\n", "sliding_window.cpp": "// P4: Sliding window in rounds. Input lines \"<GBN|SR> <N> <frames> [lost frames...]\".\n// A listed frame is lost on its FIRST transmission only. See the lab manual for the round rules.\n#include <iostream>\n#include <sstream>\n#include <set>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nset<int> sentSet, lostSet, usedSet;\nint tx = 0;\n\nvoid sendFrame(int i) { cout << (sentSet.count(i) ? \"RESEND \" : \"SEND \") << i << \"\\n\"; sentSet.insert(i); tx++; }\nbool lostNow(int i) { if (lostSet.count(i) && !usedSet.count(i)) { usedSet.insert(i); return true; } return false; }\n\nvoid goBackN(int N, int total) {\n    int base = 0;\n    while (base < total) {\n        int end = min(base + N, total);\n        // TODO 1: send every frame base .. end-1\n        // TODO 2: walk the same frames: after a loss print DISCARD i,\n        //         else if lostNow(i) print LOST i (remember it), else print ACK i\n        // TODO 3: if a frame was lost print TIMEOUT k and set base = k, otherwise base = end\n        base = end; // placeholder so the loop ends; replace\n    }\n}\n\nvoid selectiveRepeat(int N, int total) {\n    set<int> acked;\n    int base = 0;\n    while (base < total) {\n        int end = min(base + N, total);\n        // TODO 1: window = frames base .. end-1 not yet acked; send each\n        // TODO 2: for each frame in window: LOST i if lostNow(i), else ACK i and insert into acked\n        // TODO 3: print TIMEOUT i for each frame lost this round\n        // TODO 4: slide base forward while base is acked\n        base = end; // placeholder so the loop ends; replace\n    }\n}\n\nint main() {\n    string line;\n    while (getline(cin, line)) {\n        istringstream in(line);\n        string proto; int N, total, x;\n        if (!(in >> proto >> N >> total)) continue;\n        sentSet.clear(); lostSet.clear(); usedSet.clear(); tx = 0;\n        while (in >> x) lostSet.insert(x);\n        if (proto == \"GBN\") goBackN(N, total); else selectiveRepeat(N, total);\n        cout << \"TOTAL \" << tx << \"\\n\";\n    }\n}\n", "tcp_client.cpp": "// P6 client (Linux/POSIX). Build: g++ tcp_client.cpp -o client   Run: ./client <serverIP> 5000 < commands.txt\n// Prints \"SERVER: <reply>\" per command. \"FILE <path>\" sends \"FILE <name> <size>\\n\" + raw bytes\n// and first prints \"SENT <size> <checksum>\".\n#include <iostream>\n#include <fstream>\n#include <sstream>\n#include <string>\n#include <vector>\n#include <unistd.h>\n#include <arpa/inet.h>\n#include <sys/socket.h>\nusing namespace std;\n\nbool readLine(int fd, string& s) {\n    s.clear(); char c; int n;\n    while ((n = recv(fd, &c, 1, 0)) == 1 && c != '\\n') if (c != '\\r') s += c;\n    return n == 1 || !s.empty();\n}\n\nint main(int argc, char** argv) {\n    if (argc < 3) { cerr << \"usage: client <ip> <port>\\n\"; return 1; }\n    int sock = -1;\n    // TODO 1: sock = socket(AF_INET, SOCK_STREAM, 0); fill sockaddr_in from argv[1], argv[2]\n    // TODO 2: connect(sock, ...)   (sends SYN)\n\n    string cmd, reply;\n    while (getline(cin, cmd)) {\n        if (cmd.empty()) continue;\n        if (cmd.rfind(\"FILE \", 0) == 0) {\n            string path = cmd.substr(5);\n            ifstream f(path, ios::binary);\n            vector<char> data((istreambuf_iterator<char>(f)), istreambuf_iterator<char>());\n            string name = path.substr(path.find_last_of('/') + 1);\n            unsigned sum = 0;\n            // TODO 3: checksum = (sum of unsigned bytes) & 0xFFFF\n            cout << \"SENT \" << data.size() << \" \" << sum << \"\\n\";\n            // TODO 4: send \"FILE name size\\n\" then all bytes (loop until everything is sent)\n        } else {\n            // TODO 5: send cmd + \"\\n\"\n        }\n        readLine(sock, reply);\n        cout << \"SERVER: \" << reply << \"\\n\";\n        if (reply == \"BYE\") break;\n    }\n    // TODO 6: close(sock)\n}\n", "tcp_server.cpp": "// P6 server (Linux/POSIX). Build: g++ tcp_server.cpp -o server   Run: ./server   (port 5000)\n// Protocol: one command per line, one reply line per command (see lab manual).\n#include <iostream>\n#include <string>\n#include <sstream>\n#include <fstream>\n#include <cmath>\n#include <cstdio>\n#include <unistd.h>\n#include <arpa/inet.h>\n#include <sys/socket.h>\nusing namespace std;\nconst int PORT = 5000;\n\nbool readLine(int fd, string& s) {               // reads up to '\\n', byte by byte\n    s.clear(); char c; int n;\n    while ((n = recv(fd, &c, 1, 0)) == 1 && c != '\\n') if (c != '\\r') s += c;\n    return n == 1 || !s.empty();\n}\n\nstring handle(const string& line, int fd) {\n    istringstream in(line); string cmd; in >> cmd;\n    char buf[64];\n    if (cmd == \"HELLO\") { string name; in >> name; return \"HELLO \" + name + \", I am the server\"; }\n    if (cmd == \"CALC\") {\n        // TODO: read a, op, b; reply \"RESULT %.2f\" or \"ERROR divide by zero\"\n        return \"TODO\";\n    }\n    if (cmd == \"TRIG\") {\n        // TODO: read fn (sin|cos|tan) and degrees; reply \"RESULT %.4f\";\n        //       tan when |cos| < 1e-9 -> \"ERROR undefined\"\n        return \"TODO\";\n    }\n    if (cmd == \"FILE\") {\n        // TODO: read name and size; recv() EXACTLY size bytes (loop!), save as \"received_\" + name,\n        //       checksum = (sum of unsigned bytes) & 0xFFFF; reply \"OK <size> <checksum>\"\n        return \"TODO\";\n    }\n    if (cmd == \"BYE\") return \"BYE\";\n    return \"ERROR unknown command\";\n}\n\nint main() {\n    int server_fd = -1;\n    // TODO 1: server_fd = socket(AF_INET, SOCK_STREAM, 0);\n    // TODO 2: fill sockaddr_in (INADDR_ANY, htons(PORT)) and bind()\n    // TODO 3: listen(server_fd, 5)\n    cout << \"Server listening on port \" << PORT << endl;\n    while (true) {\n        int client = -1;\n        // TODO 4: client = accept(server_fd, ...)   (blocks until the handshake completes)\n        string line;\n        while (readLine(client, line)) {\n            string reply = handle(line, client);\n            cout << line << \" -> \" << reply << endl;\n            // TODO 5: send(client, (reply + \"\\n\").c_str(), ...)\n            if (reply == \"BYE\") break;\n        }\n        // TODO 6: close(client)\n    }\n}\n", "udp_receiver.cpp": "// P7 receiver (Linux/POSIX). Run: ./udp_receiver 6000 <outputFile>\n// Stops on the END datagram (seq 0xFFFFFFFF) or 5 s of silence. Prints\n// \"RECEIVED <packets> <bytes> <checksum> MISSING <comma-separated seqs | none>\"\n#include <iostream>\n#include <fstream>\n#include <map>\n#include <vector>\n#include <cstring>\n#include <cstdint>\n#include <unistd.h>\n#include <arpa/inet.h>\n#include <sys/socket.h>\nusing namespace std;\n\nint main(int argc, char** argv) {\n    if (argc < 3) { cerr << \"usage: udp_receiver <port> <outfile>\\n\"; return 1; }\n    int sock = -1;\n    // TODO 1: sock = socket(AF_INET, SOCK_DGRAM, 0); bind to INADDR_ANY:argv[1]\n    timeval tv{5, 0};\n    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv);\n\n    map<uint32_t, vector<unsigned char>> chunks;\n    long expected = -1;\n    vector<unsigned char> buf(65535);\n    while (true) {\n        ssize_t n = -1;\n        // TODO 2: n = recvfrom(sock, buf.data(), buf.size(), 0, nullptr, nullptr);\n        if (n < 4) { cerr << \"Timed out waiting for datagrams\\n\"; break; }\n        uint32_t seq; memcpy(&seq, buf.data(), 4); seq = ntohl(seq);\n        // TODO 3: if seq == 0xFFFFFFFF: read the count into expected, break\n        //         else store bytes 4..n-1 in chunks[seq]\n    }\n    // TODO 4: write chunks in order to argv[2]; count bytes; checksum\n    // TODO 5: MISSING = every seq in 0 .. expected-1 not in chunks\n    close(sock);\n}\n", "udp_sender.cpp": "// P7 sender (Linux/POSIX). Run: ./udp_sender <receiverIP> 6000 <file> <chunkBytes>\n// Datagram = 4-byte seq (network byte order) + chunk. END datagram: seq = 0xFFFFFFFF + 4-byte packet count.\n// Prints \"SENT <packets> <bytes> <checksum>\"  (checksum = sum of unsigned bytes & 0xFFFF)\n#include <iostream>\n#include <fstream>\n#include <vector>\n#include <cstring>\n#include <cstdint>\n#include <unistd.h>\n#include <arpa/inet.h>\n#include <sys/socket.h>\nusing namespace std;\n\nint main(int argc, char** argv) {\n    if (argc < 5) { cerr << \"usage: udp_sender <ip> <port> <file> <chunk>\\n\"; return 1; }\n    ifstream f(argv[3], ios::binary);\n    vector<unsigned char> file((istreambuf_iterator<char>(f)), istreambuf_iterator<char>());\n    int chunk = atoi(argv[4]);\n\n    int sock = -1;\n    sockaddr_in to{};\n    // TODO 1: sock = socket(AF_INET, SOCK_DGRAM, 0); fill 'to' from argv[1], argv[2]\n    uint32_t packets = 0; unsigned sum = 0;\n    vector<unsigned char> dg(4 + chunk);\n    for (size_t off = 0; off < file.size(); off += chunk) {\n        size_t len = min((size_t)chunk, file.size() - off);\n        // TODO 2: write htonl(packets) into dg[0..3], copy the chunk after it\n        // TODO 3: sendto(sock, dg.data(), 4 + len, 0, (sockaddr*)&to, sizeof to)\n        packets++;\n        usleep(1000);\n    }\n    // TODO 4: sum over the whole file\n    // TODO 5: send the END datagram\n    cout << \"SENT \" << packets << \" \" << file.size() << \" \" << sum << \"\\n\";\n    close(sock);\n}\n"};
+/* Reference implementations: expected output for each strict-checked practical. Shared by the page and the node cross-check. */
+const REF={};
+REF.p1=line=>{const b=[...line.trim()].map(Number);const s=a=>a.map(v=>v>0?'+':v<0?'-':'0').join('');
+  let l=-1,p=-1,d=1;
+  return[
+   'UNIPOLAR '+s(b.flatMap(x=>[x,x])),
+   'NRZ-L '+s(b.flatMap(x=>x?[1,1]:[-1,-1])),
+   'NRZ-I '+s(b.flatMap(x=>{if(x)l=-l;return[l,l]})),
+   'AMI '+s(b.flatMap(x=>{if(!x)return[0,0];p=-p;return[p,p]})),
+   'MANCHESTER '+s(b.flatMap(x=>x?[-1,1]:[1,-1])),
+   'DIFF-MANCHESTER '+s(b.flatMap(x=>{const a=x?d:-d;d=-a;return[a,-a]}))];};
+REF.p3h=line=>{const[c,ps]=line.trim().split(/\s+/),pos=+ps;const d=[...c.charCodeAt(0).toString(2).padStart(7,'0')].map(Number);
+  const n=11,isP=q=>(q&(q-1))===0,cw=Array(n+1).fill(0);let k=0;for(let q=1;q<=n;q++)if(!isP(q))cw[q]=d[k++];
+  for(const p of[1,2,4,8]){let x=0;for(let q=1;q<=n;q++)if(q&p&&q!==p)x^=cw[q];cw[p]=x}
+  const code=cw.slice(1),rx=code.slice();if(pos>0)rx[pos-1]^=1;let syn=0;rx.forEach((b,i)=>{if(b)syn^=i+1});
+  const cor=rx.slice();if(syn>=1&&syn<=n)cor[syn-1]^=1;const od=[];for(let q=1;q<=n;q++)if(!isP(q))od.push(cor[q-1]);
+  return['DATA '+d.join(''),'CODEWORD '+code.join(''),'RECEIVED '+rx.join(''),'SYNDROME '+syn,'CORRECTED '+cor.join(''),'CHAR '+String.fromCharCode(parseInt(od.join(''),2))];};
+REF.p3c=line=>{const[c,G,ps]=line.trim().split(/\s+/),pos=+ps,r=G.length-1,g=[...G].map(Number);const d=[...c.charCodeAt(0).toString(2).padStart(8,'0')].map(Number);
+  const rem=bits=>{const a=bits.slice();for(let i=0;i+r<a.length;i++)if(a[i])for(let j=0;j<=r;j++)a[i+j]^=g[j];return a.slice(-r)};
+  const crc=rem([...d,...Array(r).fill(0)]),cw=[...d,...crc],rx=cw.slice();if(pos>0)rx[pos-1]^=1;const rr=rem(rx);
+  return['DATA '+d.join(''),'CRC '+crc.join(''),'CODEWORD '+cw.join(''),'RECEIVED '+rx.join(''),'REMAINDER '+rr.join(''),'STATUS '+(rr.some(x=>x)?'ERROR DETECTED':'NO ERROR')];};
+REF.p4=line=>{const t=line.trim().split(/\s+/),pr=t[0],N=+t[1],T=+t[2],lost=new Set(t.slice(3).map(Number)),used=new Set(),sent=new Set(),o=[];let base=0,tx=0;
+  const send=i=>{o.push((sent.has(i)?'RESEND ':'SEND ')+i);sent.add(i);tx++};const drop=i=>lost.has(i)&&!used.has(i)&&(used.add(i),true);
+  if(pr==='GBN'){while(base<T){const e=Math.min(base+N,T);for(let i=base;i<e;i++)send(i);let fl=-1;
+      for(let i=base;i<e;i++){if(fl>=0)o.push('DISCARD '+i);else if(drop(i)){o.push('LOST '+i);fl=i}else o.push('ACK '+i)}
+      if(fl>=0){o.push('TIMEOUT '+fl);base=fl}else base=e}}
+  else{const ack=new Set();while(base<T){const e=Math.min(base+N,T),w=[];for(let i=base;i<e;i++)if(!ack.has(i))w.push(i);w.forEach(send);const lt=[];
+      for(const i of w){if(drop(i)){o.push('LOST '+i);lt.push(i)}else{o.push('ACK '+i);ack.add(i)}}
+      lt.forEach(i=>o.push('TIMEOUT '+i));while(ack.has(base))base++}}
+  o.push('TOTAL '+tx);return o;};
+REF.p5=block=>{const L=block.trim().split('\n').map(s=>s.trim().split(/\s+/).map(Number)),[n,m,src]=L[0],E=L.slice(1,1+m);
+  const D=Array(n+1).fill(Infinity),P=Array(n+1).fill(0),V=Array(n+1).fill(false);D[src]=0;
+  for(;;){let u=-1;for(let i=1;i<=n;i++)if(!V[i]&&D[i]<Infinity&&(u<0||D[i]<D[u]))u=i;if(u<0)break;V[u]=true;
+    for(const[a,b,c]of E){const v=a===u?b:b===u?a:0;if(v&&!V[v]&&D[u]+c<D[v]){D[v]=D[u]+c;P[v]=u}}}
+  const o=['ROUTER '+src];for(let d=1;d<=n;d++){if(d===src)continue;if(D[d]===Infinity){o.push(`DEST ${d} UNREACHABLE`);continue}let h=d;while(P[h]!==src)h=P[h];o.push(`DEST ${d} NEXTHOP ${h} COST ${D[d]}`)}return o;};
+const ipcs=b=>{let s=0;for(let i=0;i<b.length;i+=2)s+=(b[i]<<8)+b[i+1];while(s>>>16)s=(s&0xffff)+(s>>>16);return(~s)&0xffff};
+const hex=(v,n)=>v.toString(16).padStart(n,'0');
+REF.p8=line=>{const t=line.trim().split(/\s+/);
+  if(t[0]==='BUILD'){const ip=s=>s.split('.').map(Number),[,s,d,ttl,pr,len,id]=t;const h=[0x45,0,(+len>>8)&255,+len&255,(+id>>8)&255,+id&255,0x40,0,+ttl,+pr,0,0,...ip(s),...ip(d)];
+    const c=ipcs(h);h[10]=c>>8;h[11]=c&255;return['HEADER '+h.map(x=>hex(x,2)).join(''),'CHECKSUM 0x'+hex(c,4)]}
+  const h=t[1].match(/../g).map(x=>parseInt(x,16));if(ipcs(h)===0)return['VALID'];const g=h.slice();g[10]=g[11]=0;return['INVALID 0x'+hex(ipcs(g),4)];};
+
+
+/* Test-set generators. seed 0 = the fixed sample set shown in the lab manual. */
+function rng(seed){let s=seed>>>0||1;return()=>((s=Math.imul(s^s>>>15,1|s)+0x6D2B79F5|0,((s^s>>>14)>>>0)/4294967296))}
+const pick=(r,a)=>a[Math.floor(r()*a.length)], ri=(r,a,b)=>a+Math.floor(r()*(b-a+1));
+const CH='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*+=?';
+const GEN={
+ p1:s=>{if(!s)return['01001110','1111','000000','10110001','1'];const r=rng(s);return Array.from({length:5},()=>Array.from({length:ri(r,4,12)},()=>ri(r,0,1)).join(''))},
+ p3h:s=>{if(!s)return['K 0','K 5','a 11','Z 1','7 6'];const r=rng(s);return Array.from({length:6},(_,i)=>`${pick(r,CH)} ${i?ri(r,0,11):0}`)},
+ p3c:s=>{if(!s)return['K 10011 0','K 10011 3','a 1011 0','a 1011 9','Z 100000111 0','Z 100000111 16'];const r=rng(s);
+   return Array.from({length:6},(_,i)=>{const g=pick(r,['1011','1101','10011','11001','100000111']);return`${pick(r,CH)} ${g} ${i%3?ri(r,1,8+g.length-1):0}`})},
+ p4:s=>{if(!s)return['GBN 4 10 3','SR 4 10 3','GBN 3 8 1 5','SR 3 8 1 5','GBN 4 6','SR 2 7 0 4 6'];const r=rng(s);
+   return Array.from({length:6},(_,i)=>{const N=ri(r,2,5),T=ri(r,6,12),L=[...new Set(Array.from({length:ri(r,0,3)},()=>ri(r,0,T-1)))].sort((a,b)=>a-b);return[i%2?'SR':'GBN',N,T,...L].join(' ')})},
+ p5:s=>{if(!s)return['6 8 1\n1 2 100\n2 3 10\n1 4 1000\n2 5 10\n3 6 1000\n4 5 100\n5 6 10\n2 6 100','4 3 2\n1 2 5\n2 3 5\n1 3 20','5 3 1\n1 2 1\n2 3 1\n4 5 1'];
+   const r=rng(s);return Array.from({length:3},()=>{const n=ri(r,4,7),E=new Map();for(let v=2;v<=n;v++)E.set(`${ri(r,1,v-1)} ${v}`,1);const extra=ri(r,1,n);for(let k=0;k<extra;k++){const a=ri(r,1,n),b=ri(r,1,n);if(a!==b)E.set(`${Math.min(a,b)} ${Math.max(a,b)}`,1)}
+     const ed=[...E.keys()].map(k=>`${k} ${pick(r,[1,10,100,1000,5,20,50])}`);return`${n} ${ed.length} ${ri(r,1,n)}\n${ed.join('\n')}`})},
+ p8:s=>{if(!s)return['BUILD 192.168.1.10 192.168.1.11 64 6 52 7238','BUILD 10.0.0.1 8.8.8.8 128 17 60 1','VERIFY 45000073000040004011b861c0a80001c0a800c7','VERIFY 4500007300004000ff11b861c0a80001c0a800c7'];
+   const r=rng(s),ip=()=>[ri(r,1,223),ri(r,0,255),ri(r,0,255),ri(r,1,254)].join('.'),b=()=>`BUILD ${ip()} ${ip()} ${pick(r,[32,64,128,255])} ${pick(r,[1,6,17])} ${ri(r,20,1500)} ${ri(r,0,65535)}`;
+   const out=[b(),b(),b()];const h=REF.p8(b())[0].slice(7);out.push('VERIFY '+h);const bad=h.slice(0,16)+((parseInt(h[16],16)^1).toString(16))+h.slice(17);out.push('VERIFY '+bad);return out}
+};
+/* stdin text a student pastes into the program; p5 is prefixed with the test count */
+const STDIN=(k,t)=>k==='p5'?`${t.length}\n${t.join('\n')}\n`:t.join('\n')+'\n';
+const EXPECT=(k,t)=>{const f=REF[k==='p3h'||k==='p3c'?k:k];return t.flatMap(x=>f(x))};
+
+
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm=t=>t.split(/\r?\n/).map(l=>l.trim().replace(/\s+/g,' ')).filter(Boolean);
+async function copy(text,btn){const o=btn.textContent;try{await navigator.clipboard.writeText(text);btn.textContent='Copied'}catch(e){btn.textContent='Select the text and copy';const pre=btn.closest('div').querySelector('pre');if(pre){const r=document.createRange();r.selectNodeContents(pre);getSelection().removeAllRanges();getSelection().addRange(r)}}setTimeout(()=>btn.textContent=o,1600)}
+const verdict=(cls,html)=>`<div class="verdict ${cls}">${html}</div>`;
+const newSeed=()=>1+Math.floor(Math.random()*9999);
+
+/* routing */
+function show(){let id=location.hash.slice(1);if(!$('#'+CSS.escape(id||'x'))?.classList.contains('exp'))id='how';
+  $$('.exp').forEach(s=>s.hidden=s.id!==id);$$('.side a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+id));scrollTo(0,0)}
+addEventListener('hashchange',show);
+
+/* starter code boxes */
+let LANG='java';try{LANG=localStorage.getItem('cn-lang')||'java'}catch(e){}
+$$('[data-code]').forEach(el=>{const files=el.dataset.code.split('|');el.classList.add('code');
+  el.innerHTML=`<div class="tabs" role="tablist">${files.map((f,i)=>`<button role="tab" data-i="${i}">${f}</button>`).join('')}<span class="sp"></span><button class="sm cp">Copy</button></div><pre class="src"></pre><p class="build"></p>`;
+  let cur=0;const pick=i=>{cur=i;$$('[role=tab]',el).forEach((b,j)=>b.setAttribute('aria-selected',i===j));const f=files[i];$('.src',el).textContent=ST[f];
+    $('.build',el).innerHTML=f.endsWith('.java')?`Compile: <code>javac ${f}</code>`:`Compile: <code>g++ -O2 ${f} -o ${f.replace('.cpp','')}</code>`};
+  $('.tabs',el).onclick=e=>{const b=e.target.closest('[role=tab]');if(b){pick(+b.dataset.i);try{localStorage.setItem('cn-lang',files[+b.dataset.i].endsWith('.java')?'java':'cpp')}catch(e){}}};
+  $('.cp',el).onclick=e=>copy(ST[files[cur]],e.target);
+  pick(Math.max(0,files.findIndex(f=>LANG==='java'?f.endsWith('.java'):f.endsWith('.cpp'))))});
+
+/* strict output checker (P1, P3, P4, P5 extension, P8) */
+$$('[data-check]').forEach(el=>{const k=el.dataset.check,[jc,cb]=el.dataset.run.split('|');el.classList.add('chk-box');
+  el.innerHTML=`<div class="ctrls"><label class="f"><span>Test set</span><input type="number" min="0" max="99999" class="seed" value="0" aria-label="Test set number"></label><button class="new">New test set</button><span class="note">Set 0 is the sample set. Expected lines are shown only for set 0.</span></div>
+   <div class="two"><div class="col"><p class="lab">input.txt <button class="sm cp">Copy</button></p><pre class="stdin"></pre><pre class="runs">java ${jc} &lt; input.txt &gt; output.txt
+./${cb} &lt; input.txt &gt; output.txt</pre></div>
+   <label class="f"><span>Paste output.txt</span><textarea rows="12" class="got" spellcheck="false"></textarea></label></div>
+   <div class="ctrls"><button class="pri go">Check</button></div><div class="res" aria-live="polite"></div>`;
+  const seedEl=$('.seed',el),tests=()=>GEN[k](Math.max(0,+seedEl.value||0)),stdin=()=>STDIN(k,tests());
+  const fill=()=>{$('.stdin',el).textContent=stdin();$('.res',el).innerHTML=''};
+  seedEl.oninput=fill;$('.new',el).onclick=()=>{seedEl.value=newSeed();fill()};$('.cp',el).onclick=e=>copy(stdin(),e.target);
+  $('.go',el).onclick=()=>{const t=tests(),seed=+seedEl.value||0,owner=[],exp=[];t.forEach(x=>{const o=REF[k](x);o.forEach(l=>{exp.push(l);owner.push(x.split('\n')[0])})});
+    const got=norm($('.got',el).value);if(!got.length){$('.res',el).innerHTML=verdict('warn','Paste the contents of output.txt first.');return}
+    const n=Math.max(exp.length,got.length),bad=[];let ok=0;for(let i=0;i<n;i++){if(exp[i]!==undefined&&exp[i]===got[i])ok++;else bad.push(i)}
+    if(!bad.length){$('.res',el).innerHTML=verdict('ok',`All ${exp.length} lines match for test set ${seed}. ${seed?'Well done.':'Now try a new test set.'}`);return}
+    const rows=bad.slice(0,12).map((i,j)=>`<tr><td>${i+1}</td><td>${esc(owner[i]??'—')}</td><td>${exp[i]===undefined?'<i>(no line expected)</i>':seed===0||j===0?esc(exp[i]):'<span class="muted">hidden</span>'}</td><td class="bad">${got[i]===undefined?'<i>(missing)</i>':esc(got[i])}</td></tr>`).join('');
+    $('.res',el).innerHTML=verdict(ok/exp.length>.8?'warn':'bad',`${ok} of ${exp.length} lines match${got.length!==exp.length?` · you printed ${got.length} lines, expected ${exp.length}`:''}.`)+
+      `<div class="scroll"><table class="t"><thead><tr><th>Line</th><th>Input</th><th>Expected</th><th>Your output</th></tr></thead><tbody>${rows}</tbody></table></div>${bad.length>12?`<p class="note">${bad.length-12} more mismatched lines not shown.</p>`:''}`};
+  fill()});
+
+/* P2 command output analyser */
+const obs=[];
+function analyse(t){const m=(re)=>t.match(re),F=[];let type='';
+  if(/Pinging|PING |packets transmitted|Packets: Sent/i.test(t)){type='ping';const tg=m(/Pinging (\S+)/i)||m(/PING (\S+)/i);
+    const w=m(/Sent = (\d+), Received = (\d+), Lost = (\d+)/i),l=m(/(\d+) packets transmitted, (\d+) (?:packets )?received.*?([\d.]+)% packet loss/i);
+    const rw=m(/Minimum = (\d+)ms, Maximum = (\d+)ms, Average = (\d+)ms/i),rl=m(/= ([\d.]+)\/([\d.]+)\/([\d.]+)/),ttl=m(/TTL=(\d+)/i);
+    if(tg)F.push(['Target',tg[1]]);if(w)F.push(['Sent / received',`${w[1]} / ${w[2]}`],['Loss',Math.round(w[3]/w[1]*100)+'%']);if(l)F.push(['Sent / received',`${l[1]} / ${l[2]}`],['Loss',l[3]+'%']);
+    if(rw)F.push(['RTT min / avg / max',`${rw[1]} / ${rw[3]} / ${rw[2]} ms`]);if(rl)F.push(['RTT min / avg / max',`${rl[1]} / ${rl[2]} / ${rl[3]} ms`]);if(ttl)F.push(['TTL',ttl[1]]);
+    if(/unreachable/i.test(t))F.push(['Note','Destination host unreachable (ARP failed or no route)']);else if(/timed out/i.test(t))F.push(['Note','Request timed out']);}
+  else if(/Tracing route|traceroute to|Computing statistics/i.test(t)){type=/Computing statistics/i.test(t)?'pathping':'tracert';const hops=t.split(/\r?\n/).filter(l=>/^\s*\d+\s+(?:[<\d*]|\S+\s+\()/.test(l)&&!/Hop\s+RTT/i.test(l));
+    const ips=hops.map(h=>(h.match(/(\d+\.\d+\.\d+\.\d+)\]?\s*\)?\s*$/)||h.match(/(\d+\.\d+\.\d+\.\d+)/)||[])[1]).filter(Boolean);
+    F.push(['Hops',String(new Set(hops.map(h=>h.trim().split(/\s+/)[0])).size)]);if(ips[0])F.push(['First hop',ips[0]]);if(ips.length)F.push(['Last hop',ips[ips.length-1]]);F.push(['Timed-out hops',String(hops.filter(h=>/\*\s+\*\s+\*|timed out/i.test(h)).length)])}
+  else if(/IPv4 Address|Subnet Mask|inet \d/i.test(t)){type='ipconfig';const ip=m(/IPv4 Address[ .]*:\s*([\d.]+)/i)||[...t.matchAll(/inet (\d+\.\d+\.\d+\.\d+)(?:\/(\d+))?/g)].find(x=>x[1]!=='127.0.0.1');
+    const mk=m(/Subnet Mask[ .]*:\s*([\d.]+)/i)||m(/netmask ([\d.]+)/);const gw=m(/Default Gateway[ .]*:\s*([\d.]+)/i);const mac=m(/Physical Address[ .]*:\s*([0-9A-F-]{17})/i)||m(/(?:ether|link\/ether) ([0-9a-f:]{17})/i);
+    if(ip)F.push(['IPv4 address',ip[1]]);if(mk)F.push(['Subnet mask',mk[1]]);else if(ip&&ip[2])F.push(['Prefix','/'+ip[2]]);if(gw)F.push(['Default gateway',gw[1]]);if(mac)F.push(['MAC address',mac[1]])}
+  else if(/Internet Address|Physical Address|lladdr| at [0-9a-f]{2}:/i.test(t)){type='arp';const e=[...t.matchAll(/(\d+\.\d+\.\d+\.\d+)\s+(?:dev \S+ lladdr |\S* ?at )?([0-9a-f]{2}[-:](?:[0-9a-f]{2}[-:]){4}[0-9a-f]{2})\s*(\w*)/gi)];
+    F.push(['Entries',String(e.length)],['Dynamic',String(e.filter(x=>/dynamic|REACHABLE|STALE|ether/i.test(x[0])).length)]);e.slice(0,6).forEach(x=>F.push([x[1],x[2]]))}
+  else if(/Non-authoritative|^Server:|Name:\s/im.test(t)){type='nslookup';const sv=m(/Server:\s*(\S+)/),nm=m(/Name:\s*(\S+)/),ad=[...t.matchAll(/Address(?:es)?:\s*([\d.:a-f]+)/gi)].map(x=>x[1]);
+    if(sv)F.push(['DNS server',sv[1]]);if(nm)F.push(['Name',nm[1]]);if(ad.length>1)F.push(['Resolved',ad.slice(1).join(', ')])}
+  return{type,F}}
+$('#p2-go').onclick=()=>{const{type,F}=analyse($('#p2-in').value);if(!type||!F.length){$('#p2-out').innerHTML=verdict('warn','Could not recognise this output. Paste the full output of ping, ipconfig/ip a, tracert/traceroute, pathping, arp -a or nslookup.');return}
+  obs.push([type,F.map(f=>f.join(': ')).join(' · ')]);$('#p2-out').innerHTML=verdict('ok',`Recognised <b>${type}</b> output and added it to the observation table.`)+`<div class="kv">${F.map(([k,v])=>`<span>${esc(k)}</span><b>${esc(v)}</b>`).join('')}</div>`;
+  $('#p2-obs tbody').innerHTML=obs.map((o,i)=>`<tr><td>${i+1}</td><td>${o[0]}</td><td style="white-space:normal">${esc(o[1])}</td></tr>`).join('');$('#p2-in').value=''};
+$('#p2-copy').onclick=e=>copy(obs.map((o,i)=>`${i+1}\t${o[0]}\t${o[1]}`).join('\n')||'(no observations yet)',e.target);
+$('#p2-vgo').onclick=()=>{const V={};let last=null;$('#p2-vl').value.split(/\r?\n/).forEach(l=>{const m=l.match(/^(\d+)\s+(\S+)\s+(?:active|act\/\S+|suspended)\s*(.*)$/i);
+    if(m){last=m[1];V[last]={name:m[2],ports:m[3]}}else if(last&&/^\s+(Fa|Gi|Gig|Eth)/i.test(l))V[last].ports+=','+l});
+  const ports=v=>(V[v]?.ports||'').split(/[,\s]+/).filter(Boolean).map(p=>p.toLowerCase().replace(/^fastethernet/,'fa'));
+  const chk=[['VLAN 10 exists',!!V[10]],['VLAN 10 named LAB-A',V[10]?.name==='LAB-A'],['Fa0/1 and Fa0/2 in VLAN 10',['fa0/1','fa0/2'].every(p=>ports(10).includes(p))],
+    ['VLAN 20 exists',!!V[20]],['VLAN 20 named LAB-B',V[20]?.name==='LAB-B'],['Fa0/3 and Fa0/4 in VLAN 20',['fa0/3','fa0/4'].every(p=>ports(20).includes(p))],
+    ['Fa0/1–Fa0/4 no longer in VLAN 1',!['fa0/1','fa0/2','fa0/3','fa0/4'].some(p=>ports(1).includes(p))]];
+  if(!Object.keys(V).length){$('#p2-vout').innerHTML=verdict('warn','No VLAN lines found. Paste the full output of <code>show vlan brief</code>.');return}
+  const ok=chk.every(c=>c[1]);$('#p2-vout').innerHTML=verdict(ok?'ok':'bad',ok?'Switch ports are assigned correctly. Now ping within and across VLANs and record the results.':'Some checks failed; see below.')+`<ul class="cl">${chk.map(([n,p])=>`<li class="${p?'ok':'bad'}">${p?'✓':'✗'} ${n}</li>`).join('')}</ul>`};
+
+/* P3 assignment toggle */
+$$('input[name=p3m]').forEach(r=>r.onchange=()=>$$('[data-p3]').forEach(d=>d.hidden=d.dataset.p3!==r.value));
+
+/* P5 OSPF checker */
+const OS={R1:{nets:['192.168.20.0','192.168.30.0','10.0.23.0'],nb:['10.0.12.2','10.0.13.2'],ids:['2.2.2.2','3.3.3.3']},
+  R2:{nets:['192.168.10.0','192.168.30.0','10.0.13.0'],nb:['10.0.12.1','10.0.23.2'],ids:['1.1.1.1','3.3.3.3']},
+  R3:{nets:['192.168.10.0','192.168.20.0','10.0.12.0'],nb:['10.0.13.1','10.0.23.1'],ids:['1.1.1.1','2.2.2.2']}};
+$('#p5-go').onclick=()=>{const R=OS[$('#p5-r').value],out=[];
+  const nb=[...$('#p5-nb').value.matchAll(/^\s*(\d+\.\d+\.\d+\.\d+)\s+\d+\s+(\w+)\/?\s*\S*\s+\S+\s+(\d+\.\d+\.\d+\.\d+)/gm)];
+  if($('#p5-nb').value.trim()){const full=nb.filter(x=>/FULL/i.test(x[2]));out.push([`${full.length} neighbour(s) in FULL state (expected 2, or 1 after the link is shut)`,full.length>=1&&full.length<=2]);
+    R.ids.forEach(id=>{const x=nb.find(n=>n[1]===id);out.push([`Neighbour ${id}: ${x?x[2]+' via '+x[3]:'not listed'}`,!!x&&/FULL/i.test(x[2])])})}
+  const rt=$('#p5-rt').value;if(rt.trim()){const O=[...rt.matchAll(/^O\s+(?:\S+\s+)?(\d+\.\d+\.\d+\.\d+)(\/\d+)?\s+\[(\d+)\/(\d+)\]\s+via\s+(\d+\.\d+\.\d+\.\d+)/gm)];
+    out.push([`${O.length} OSPF route(s) found`,O.length>0]);R.nets.forEach(n=>{const x=O.find(o=>o[1]===n);
+      out.push([x?`${n} via ${x[5]}, AD ${x[3]}, cost ${x[4]}`:`${n} missing from the routing table`,!!x&&x[3]==='110'&&R.nb.includes(x[5])])});
+    if(/^C\s/m.test(rt)===false)out.push(['No connected (C) routes found: paste the full show ip route output',false])}
+  if(!out.length){$('#p5-out').innerHTML=verdict('warn','Paste at least one of the two outputs.');return}
+  const ok=out.every(o=>o[1]);$('#p5-out').innerHTML=verdict(ok?'ok':'bad',ok?'OSPF is working: adjacencies are FULL and all remote networks are learned.':'Some checks failed. Check interface addresses, network statements and wildcard masks.')+`<ul class="cl">${out.map(([n,p])=>`<li class="${p?'ok':'bad'}">${p?'✓':'✗'} ${esc(n)}</li>`).join('')}</ul>`};
+
+/* P6 TCP transcript checker */
+function p6Script(seed){if(!seed)return['HELLO Riya','CALC 12 * 7','CALC 7 / 2','CALC 9 % 0','TRIG sin 30','TRIG cos 60','TRIG tan 90','FILE notes.txt','BYE'];
+  const r=rng(seed),c=()=>`CALC ${ri(r,1,99)} ${pick(r,['+','-','*','/','%'])} ${r()<.15?0:ri(r,1,20)}`,g=()=>`TRIG ${pick(r,['sin','cos','tan'])} ${pick(r,[0,30,45,60,90,120,135,180,270,300])}`;
+  return[`HELLO ${pick(r,['Aarav','Diya','Kabir','Meera','Om','Sana','Tanvi','Yash'])}`,c(),c(),c(),g(),g(),g(),'FILE notes.txt','BYE']}
+function p6Expect(cmd){const t=cmd.split(' ');if(t[0]==='HELLO')return{s:`SERVER: HELLO ${t[1]}, I am the server`};if(t[0]==='BYE')return{s:'SERVER: BYE'};
+  if(t[0]==='CALC'){const a=+t[1],b=+t[3],o=t[2];if((o==='/'||o==='%')&&b===0)return{s:'SERVER: ERROR divide by zero'};return{v:{'+':a+b,'-':a-b,'*':a*b,'/':a/b,'%':a%b}[o],dp:2}}
+  if(t[0]==='TRIG'){const x=+t[2]*Math.PI/180;if(t[1]==='tan'&&Math.abs(Math.cos(x))<1e-9)return{s:'SERVER: ERROR undefined'};return{v:Math[t[1]](x),dp:4}}return{file:true}}
+let p6seed=0;const p6show=()=>{$('#p6-cmd').textContent=p6Script(p6seed).join('\n');$('#p6 .setno').textContent=`(set ${p6seed})`};
+$('#p6-new').onclick=()=>{p6seed=newSeed();p6show();$('#p6-res').innerHTML=''};$('#p6-cp').onclick=e=>copy(p6Script(p6seed).join('\n')+'\n',e.target);p6show();
+$('#p6-go').onclick=()=>{const got=norm($('#p6-out').value);if(!got.length){$('#p6-res').innerHTML=verdict('warn','Paste the client output first.');return}let i=0;const res=[];
+  for(const cmd of p6Script(p6seed)){const e=p6Expect(cmd);
+    if(e.file){const s=(got[i]||'').match(/^SENT (\d+) (\d+)$/),o=(got[i+1]||'').match(/^SERVER: OK (\d+) (\d+)$/);
+      res.push([cmd,!!s&&!!o&&s[1]===o[1]&&s[2]===o[2],s&&o?(s[1]===o[1]&&s[2]===o[2]?`client sent ${s[1]} bytes, server received ${o[1]}, checksums ${s[2]} = ${o[2]}`:`client SENT ${s[1]} ${s[2]} but server replied OK ${o[1]} ${o[2]}`):`expected "SENT n c" then "SERVER: OK n c", got "${got[i]||''}" / "${got[i+1]||''}"`]);i+=2;continue}
+    const g=got[i]||'';i++;
+    if(e.s){res.push([cmd,g===e.s,g===e.s?g:`expected "${e.s}", got "${g||'(missing)'}"`]);continue}
+    const m=g.match(/^SERVER: RESULT (-?\d+\.(\d+))$/),want=(Math.abs(e.v)<5*10**-(e.dp+1)?0:e.v).toFixed(e.dp);
+    const ok=!!m&&m[2].length===e.dp&&Math.abs(+m[1]-e.v)<=0.51*10**-e.dp;res.push([cmd,ok,ok?g:`expected "SERVER: RESULT ${want}", got "${g||'(missing)'}"`])}
+  if(got.length>i)res.push(['(extra lines)',false,`${got.length-i} unexpected line(s) after BYE`]);
+  const pass=res.filter(r=>r[1]).length,ok=pass===res.length;
+  $('#p6-res').innerHTML=verdict(ok?'ok':pass>res.length/2?'warn':'bad',ok?`All ${res.length} commands handled correctly for set ${p6seed}.`:`${pass} of ${res.length} commands correct.`)+
+    `<div class="scroll"><table class="t"><thead><tr><th></th><th>Command</th><th>Result</th></tr></thead><tbody>${res.map(([c,p,m])=>`<tr><td class="${p?'ok':'bad'}">${p?'✓':'✗'}</td><td>${esc(c)}</td><td class="${p?'':'bad'}" style="white-space:normal">${esc(m)}</td></tr>`).join('')}</tbody></table></div>`};
+
+/* P7 UDP transfer checker */
+const P7T=[['script','Script (.sh / .py)'],['text','Text (.txt)'],['audio','Audio (.mp3 / .wav)'],['video','Video (.mp4)']];
+$('#p7-rows').innerHTML=P7T.map(([k,l])=>`<fieldset><legend>${l}</legend><label class="f"><span>Sender line</span><input type="text" id="p7s-${k}" placeholder="SENT 480 491520 39215" spellcheck="false"></label><label class="f"><span>Receiver line</span><input type="text" id="p7r-${k}" placeholder="RECEIVED 480 491520 39215 MISSING none" spellcheck="false"></label></fieldset>`).join('');
+$('#p7-go').onclick=()=>{const out=P7T.map(([k,l])=>{const s=$('#p7s-'+k).value.trim().match(/SENT\s+(\d+)\s+(\d+)\s+(\d+)/),r=$('#p7r-'+k).value.trim().match(/RECEIVED\s+(\d+)\s+(\d+)\s+(\d+)\s+MISSING\s+(.+)/);
+    if(!s&&!r)return[l,'',''];if(!s||!r)return[l,'bad',`Paste both lines. Expected formats: "SENT p b c" and "RECEIVED p b c MISSING …".`];
+    const miss=/^none$/i.test(r[4].trim())?[]:r[4].split(/[,\s]+/).filter(Boolean),lost=+s[1]-+r[1];
+    if(s[1]===r[1]&&s[2]===r[2]&&s[3]===r[3]&&!miss.length)return[l,'ok',`Intact: ${s[1]} datagrams, ${(+s[2]).toLocaleString('en-IN')} bytes, checksum ${s[3]} matches.`];
+    if(miss.length!==lost)return[l,'bad',`Inconsistent: ${lost} fewer packets received but MISSING lists ${miss.length}. Check how the receiver uses the END packet count.`];
+    if(!lost&&s[3]!==r[3])return[l,'bad','All datagrams arrived but the checksum differs: chunks were written out of order or with the 4-byte header included.'];
+    const media=k==='audio'||k==='video';return[l,media?'warn':'bad',`${lost} datagram(s) lost (seq ${miss.slice(0,8).join(', ')}${miss.length>8?' …':''}), ${(+s[2]-+r[2]).toLocaleString('en-IN')} bytes missing. ${media?'The media file will still play, with glitches.':'This file is corrupted and unusable; reliable delivery would need ACKs and retransmission.'}`]}).filter(x=>x[1]);
+  $('#p7-res').innerHTML=out.length?out.map(([l,c,m])=>verdict(c,`<b>${esc(l)}:</b> ${esc(m)}`)).join(''):verdict('warn','Paste the sender and receiver lines for at least one file.')};
+
+/* P8 Wireshark hex decoder */
+$('#p8-go').onclick=()=>{let h=$('#p8-hex').value.replace(/[^0-9a-f]/gi,'').toLowerCase(),eth='';
+  if(h[0]!=='4'&&h.length>=68){let o=24;if(h.slice(o,o+4)==='8100')o+=8;if(h.slice(o,o+4)==='0800'){eth=`Ethernet II · dst ${h.slice(0,12).match(/../g).join(':')} · src ${h.slice(12,24).match(/../g).join(':')} · type 0x0800`;h=h.slice(o+4)}}
+  if(h.length<40||h[0]!=='4'){$('#p8-out').innerHTML=verdict('warn','This does not look like an IPv4 header. Copy the IPv4 layer (or the whole frame) as a hex stream.');return}
+  const B=h.match(/../g).map(x=>parseInt(x,16)),ihl=(B[0]&15)*4,H=B.slice(0,ihl);let s=0;for(let i=0;i<ihl;i+=2)s+=(H[i]<<8)+H[i+1];while(s>>>16)s=(s&0xffff)+(s>>>16);
+  const valid=(s&0xffff)===0xffff,G=H.slice();G[10]=G[11]=0;let t=0;for(let i=0;i<ihl;i+=2)t+=(G[i]<<8)+G[i+1];while(t>>>16)t=(t&0xffff)+(t>>>16);const want=(~t)&0xffff;
+  const pr={1:'ICMP',6:'TCP',17:'UDP'}[B[9]]||'other',ip=o=>B.slice(o,o+4).join('.'),w=o=>(B[o]<<8)+B[o+1],fl=w(6);
+  const rows=[['Version',B[0]>>4],['Header length',`${ihl} bytes (IHL ${ihl/4})`],['DSCP / ECN',`0x${B[1].toString(16).padStart(2,'0')}`],['Total length',w(2)],['Identification',`0x${w(4).toString(16).padStart(4,'0')} (${w(4)})`],
+    ['Flags',`0x${(fl>>13).toString(16)}${fl&0x4000?' · Don\'t fragment':''}${fl&0x2000?' · More fragments':''}`],['Fragment offset',fl&0x1fff],['TTL',B[8]],['Protocol',`${pr} (${B[9]})`],
+    ['Header checksum',`0x${w(10).toString(16).padStart(4,'0')} ${valid?'· correct':`· wrong, should be 0x${want.toString(16).padStart(4,'0')}`}`],['Source',ip(12)],['Destination',ip(16)]];
+  if((B[9]===6||B[9]===17)&&B.length>=ihl+4)rows.push([`${pr} ports`,`${w(ihl)} → ${w(ihl+2)}`]);
+  if(B[9]===6&&B.length>=ihl+14){const f=B[ihl+13];rows.push(['TCP flags',['FIN','SYN','RST','PSH','ACK','URG'].filter((_,i)=>f&(1<<i)).join(', ')||'none'])}
+  $('#p8-out').innerHTML=verdict(valid?'ok':'bad',valid?'Header checksum is correct. Your program should print VALID for this header.':`Header checksum is wrong. Your program should print INVALID 0x${want.toString(16).padStart(4,'0')}.`)+(eth?`<p class="note">${eth}</p>`:'')+
+    `<p class="mono note">VERIFY ${h.slice(0,40)}</p><div class="kv">${rows.map(([k,v])=>`<span>${k}</span><b>${esc(String(v))}</b>`).join('')}</div>`};
+
+/* P9 HTTP response checker */
+const T9=[
+ {n:'1 · HTTP/1.0 GET',c:'curl -i --http1.0 http://localhost:8080/index.html',v:'HTTP/1.0',code:200,conn:'close',html:true},
+ {n:'2 · HTTP/1.1 GET, persistent',c:'curl -i http://localhost:8080/index.html',v:'HTTP/1.1',code:200,conn:'keep-alive',html:true},
+ {n:'3 · HEAD request',c:'curl -I http://localhost:8080/index.html',v:'HTTP/1.1',code:200,conn:'keep-alive',head:true},
+ {n:'4 · 404 Not Found',c:'curl -i http://localhost:8080/nothing.html',v:'HTTP/1.1',code:404,conn:'keep-alive'},
+ {n:'5 · 403 Forbidden',c:'curl -i http://localhost:8080/secret.html',v:'HTTP/1.1',code:403,conn:'keep-alive'},
+ {n:'6 · 301 redirect',c:'curl -i http://localhost:8080/old.html',v:'HTTP/1.1',code:301,conn:'keep-alive',hdr:[['location',/\/index\.html$/,'Location: /index.html']]},
+ {n:'7 · 405 method not allowed',c:'curl -i -X DELETE http://localhost:8080/index.html',v:'HTTP/1.1',code:405,conn:'keep-alive',hdr:[['allow',/GET/i,'Allow: GET, HEAD']]},
+ {n:'8 · 400 missing Host',c:'curl -i -H "Host:" http://localhost:8080/index.html',v:'HTTP/1.1',code:400,conn:'close'},
+ {n:'9 · 505 version not supported',c:"printf 'GET /index.html HTTP/3.0\\r\\nHost: localhost\\r\\n\\r\\n' | nc -q 2 localhost 8080",v:'HTTP/1.1',code:505,conn:'close'}];
+const p9done={};$('#p9-t').innerHTML=T9.map((t,i)=>`<option value="${i}">${t.n}</option>`).join('');
+const p9prog=()=>$('#p9-prog').innerHTML=T9.map((t,i)=>`<span class="pill ${p9done[i]===true?'ok':p9done[i]===false?'bad':''}">${i+1}</span>`).join('')+`<span class="note">${Object.values(p9done).filter(x=>x).length} of ${T9.length} tests passed</span>`;
+const p9sel=()=>{$('#p9-cmd').textContent=T9[+$('#p9-t').value].c;$('#p9-res').innerHTML='';$('#p9-in').value=''};$('#p9-t').onchange=p9sel;p9sel();p9prog();
+$('#p9-cp').onclick=e=>copy($('#p9-cmd').textContent,e.target);
+$('#p9-go').onclick=()=>{const i=+$('#p9-t').value,T=T9[i],raw=$('#p9-in').value.replace(/\r\n/g,'\n').replace(/^\s+/,'');if(!raw){$('#p9-res').innerHTML=verdict('warn','Paste the response printed by the command.');return}
+  const cut=raw.indexOf('\n\n'),head=(cut<0?raw:raw.slice(0,cut)).split('\n'),body=cut<0?'':raw.slice(cut+2),st=head[0].match(/^(HTTP\/\d\.\d)\s+(\d{3})\s*(.*)$/),H={};
+  head.slice(1).forEach(l=>{const c=l.indexOf(':');if(c>0)H[l.slice(0,c).trim().toLowerCase()]=l.slice(c+1).trim()});
+  const C=[];if(!st)C.push(['Status line like "HTTP/1.1 200 OK"',false,`got "${head[0]}"`]);else{C.push([`Version ${T.v}`,st[1]===T.v,st[1]],[`Status ${T.code}`,+st[2]===T.code,`${st[2]} ${st[3]}`],['Reason phrase present',!!st[3].trim(),st[3]||'(none)'])}
+  ['date','server','content-length'].forEach(k=>C.push([`${k[0].toUpperCase()+k.slice(1)} header`,k in H,H[k]??'missing']));
+  C.push([`Connection: ${T.conn}`,(H.connection||'').toLowerCase()===T.conn,H.connection??'missing']);
+  if(T.html)C.push(['Content-Type text/html',/text\/html/i.test(H['content-type']||''),H['content-type']??'missing']);
+  (T.hdr||[]).forEach(([k,re,lab])=>C.push([lab,re.test(H[k]||''),H[k]??'missing']));
+  const bytes=new TextEncoder().encode(body).length,cl=+H['content-length'],slack=(body.match(/\n/g)||[]).length+2;
+  if(T.head)C.push(['HEAD: no body, Content-Length of the file',!body.trim()&&cl>0,body.trim()?'body was sent':`Content-Length ${H['content-length']??'?'}`]);
+  else if('content-length' in H)C.push(['Content-Length matches body',Math.abs(cl-bytes)<=slack||(!body&&cl===0),`header ${cl}, body ${bytes} bytes`]);
+  const ok=C.every(c=>c[1]);p9done[i]=ok;p9prog();
+  $('#p9-res').innerHTML=verdict(ok?'ok':'bad',ok?`Test ${i+1} passed.`:`Test ${i+1}: ${C.filter(c=>!c[1]).length} check(s) failed.`)+`<ul class="cl">${C.map(([n,p,v])=>`<li class="${p?'ok':'bad'}">${p?'✓':'✗'} ${esc(n)} <span class="muted">· ${esc(v)}</span></li>`).join('')}</ul>`};
+$('#p9-ff').innerHTML=['Opened http://localhost:8080/index.html in Firefox and the page rendered','Network panel (F12) shows status 200 and Protocol HTTP/1.1 for index.html','Response headers show Connection: keep-alive','After a reload, the Timings tab shows no new connection setup for the second request','http://localhost:8080/nothing.html shows your 404 page and status 404','An HTTPS site shows HTTP/2 (or HTTP/3) in the Protocol column']
+  .map((t,i)=>`<label class="chk"><input type="checkbox" id="ff${i}"> ${t}</label>`).join('');
+
+show();
+
+</script>
+
+</body>
+</html>
